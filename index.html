@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>KT-2251S 3D Model</title>
+<style>
+  :root{--bg:#0a1420;--panel:#0d1826;--line:#2a3d55;--ink:#e9f2ff;--dim:#8fa6c2;--acc:#7fd0ff}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  #view{position:relative;flex:1;min-height:0;background-color:var(--bg);
+    background-image:linear-gradient(rgba(140,180,255,.11) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(140,180,255,.11) 1px,transparent 1px),
+      linear-gradient(rgba(140,180,255,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(140,180,255,.045) 1px,transparent 1px);
+    background-size:100px 100px,100px 100px,20px 20px,20px 20px}
+  canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+  #frame{position:absolute;inset:6px;border:1px solid rgba(220,235,255,.55);pointer-events:none}
+  #ttl{position:absolute;left:16px;right:16px;top:13px;pointer-events:none;text-transform:uppercase;
+    font-family:"Arial Narrow","Helvetica Neue",Arial,sans-serif;line-height:1.25}
+  #ttl b{font-size:15px;letter-spacing:.02em}
+  #ttl span{font-size:13px;color:var(--dim)}
+  #sub{font-size:11px;color:var(--ink);letter-spacing:.04em;margin-top:1px}
+  #specs{position:absolute;right:16px;top:58px;border-collapse:collapse;font-size:10px;
+    background:rgba(10,20,32,.88);pointer-events:none;font-family:"Arial Narrow",Arial,sans-serif;letter-spacing:.04em}
+  #specs td,#specs th{border:1px solid rgba(220,235,255,.5);padding:4px 8px;text-align:left;font-weight:400}
+  #specs th{text-align:center;font-size:11px}
+  #tb{position:absolute;right:6px;bottom:6px;display:grid;grid-template-columns:auto auto;
+    background:rgba(10,20,32,.9);border:1px solid rgba(220,235,255,.55);pointer-events:none;
+    font-family:"Arial Narrow",Arial,sans-serif;font-size:11px;letter-spacing:.03em}
+  #tb div{padding:2px 7px 3px;border:1px solid rgba(220,235,255,.28);white-space:nowrap}
+  #tb small{display:block;font-size:7.5px;color:var(--dim);letter-spacing:.08em}
+  #tb .s2{grid-column:span 2}
+  #hint{position:absolute;left:0;right:0;top:50%;text-align:center;font-size:10px;color:var(--dim);
+    pointer-events:none;letter-spacing:.08em;transition:opacity .4s}
+  #ctl{padding:8px 10px 10px;background:var(--panel);border-top:1px solid var(--line)}
+  .rowb{display:flex;gap:6px;margin-bottom:7px}
+  button{flex:1;min-width:0;padding:8px 2px;font:inherit;font-size:10.5px;letter-spacing:.05em;color:var(--dim);
+    background:transparent;border:1px solid var(--line);border-radius:3px;cursor:pointer;white-space:nowrap;overflow:hidden}
+  button[aria-pressed=true]{color:#06101c;background:var(--ink);border-color:var(--ink);font-weight:700}
+  #tabs button[aria-pressed=true]{background:var(--acc);border-color:var(--acc)}
+  #act{color:var(--acc);border-color:var(--acc)}
+  .row{display:flex;align-items:center;gap:10px;margin-bottom:3px}
+  .row label{flex:0 0 84px;font-size:10px;color:var(--dim);letter-spacing:.05em}
+  .row output{flex:0 0 44px;text-align:right;font-size:11px;color:var(--acc)}
+  input[type=range]{flex:1;min-width:0;height:28px;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+  input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--line)}
+  input[type=range]::-moz-range-track{height:2px;background:var(--line)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-8px;
+    border-radius:50%;background:var(--ink);border:3px solid var(--panel)}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);border:3px solid var(--panel)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+  .battle #ttl,.battle #tb,.battle #specs,.battle #frame,.battle #hint,.battle #sliders,.battle #actrow,.battle #togs{display:none!important}
+  .battle canvas{cursor:crosshair}
+  #gsel{display:none;margin:0}.battle #gsel{display:flex}.battle #vsel{display:none!important}
+  #vsel{margin:0 0 4px}
+  #gsel label,#vsel label{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);letter-spacing:.05em}
+  #gsel select,#vsel select{flex:1;min-width:0;padding:7px 4px;font:inherit;font-size:11px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px}
+  #ghud{display:none}.battle #ghud{display:block}
+  #gFire{position:absolute;right:18px;bottom:22px;width:78px;height:78px;border-radius:50%;background:rgba(200,40,30,.6);color:#fff;
+    border:2px solid rgba(255,255,255,.75);font-weight:700;font-size:12px;touch-action:none}
+  #gSight{position:absolute;right:108px;bottom:22px;width:60px;height:44px;background:rgba(0,0,0,.45);color:#fff;
+    border:1px solid rgba(255,255,255,.6);touch-action:none}
+  #joy{position:absolute;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(0,0,0,.3);
+    border:1px solid rgba(255,255,255,.5);touch-action:none;display:none}
+  #joy i{position:absolute;left:37px;top:37px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);pointer-events:none}
+  #ghelp{position:absolute;left:180px;right:180px;bottom:8px;text-align:center;font-size:10px;color:rgba(255,255,255,.85);
+    text-shadow:0 1px 2px #000;pointer-events:none;letter-spacing:.04em}
+  @media (max-width:600px){#ghelp{display:none}
+    #ttl b{font-size:11.5px}#ttl span{display:none}#sub{font-size:9.5px}
+    #tb{font-size:9.5px}#tb .w{display:none}#specs{top:46px;right:12px;font-size:9px}
+    #specs td,#specs th{padding:3px 6px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view">
+    <canvas id="c"></canvas>
+    <div id="frame"></div>
+    <div id="ttl"><b id="tt1">Fictional heavy hybrid super-tank &lsquo;KT-2251S&rsquo;</b> <span id="tt2">(Designation: Project Chaos)</span>
+      <div id="sub"></div></div>
+    <table id="specs"></table>
+    <div id="tb">
+      <div><small>PROJECT:</small>CHAOS</div><div><small>DESIGNATION:</small><span id="tbDes">KT-2251S</span></div>
+      <div class="s2 w"><small>CLIENT:</small>FICTIONAL MINISTRY OF DEFENSE</div>
+      <div class="s2"><small>DWG NO:</small><span id="dwg"></span></div>
+      <div><small>SHEET:</small><span id="shn"></span></div><div><small>SCALE:</small><span id="scl">1:50</span></div>
+      <div class="w"><small>DATE:</small>12 OCT 2023</div><div class="w"><small>DRAWN BY:</small>VECTOR7</div>
+    </div>
+    <div id="ghud"><div id="joy"><i id="knob"></i></div><button id="gSight">SIGHT</button><button id="gFire">FIRE</button>
+      <div id="ghelp">W A S D DRIVE &middot; DRAG OR ARROWS AIM &middot; SPACE FIRE &middot; E GUN SIGHT &middot; M SOUND</div></div>
+    <div id="hint">DRAG TO ORBIT &middot; PINCH OR SCROLL TO ZOOM</div>
+  </div>
+  <div id="ctl">
+    <div class="rowb" id="tabs"></div>
+    <div class="rowb" id="vsel"><label>MODEL<select id="selView"></select></label></div>
+    <div class="rowb" id="gsel"><label>TANK<select id="selTank"></select></label><label>ENEMIES<select id="selFoe"></select></label></div>
+    <div id="sliders"></div>
+    <div class="rowb" id="actrow" style="display:none"><button id="act"></button></div>
+    <div class="rowb" id="togs" style="margin:6px 0 0">
+      <button id="bSolid" aria-pressed="false">SOLID</button>
+      <button id="bXray" aria-pressed="false">X-RAY</button>
+      <button id="bLab" aria-pressed="true">LABELS</button>
+      <button id="bSpec" aria-pressed="false">SPECS</button>
+      <button id="bSpin" aria-pressed="true">SPIN</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+"use strict";
+var D=Math.PI/180;
+/* ================= matrices ================= */
+function mul(a,b){var o=new Float32Array(16);
+  for(var c=0;c<4;c++)for(var r=0;r<4;r++){var s=0;for(var k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s;}return o;}
+function persp(fy,as,n,f){var t=1/Math.tan(fy/2);
+  return new Float32Array([t/as,0,0,0,0,t,0,0,0,0,(f+n)/(n-f),-1,0,0,2*f*n/(n-f),0]);}
+function look(e,t){var z=[e[0]-t[0],e[1]-t[1],e[2]-t[2]],l=Math.hypot(z[0],z[1],z[2]);z=[z[0]/l,z[1]/l,z[2]/l];
+  var x=[z[2],0,-z[0]];l=Math.hypot(x[0],x[2]);x=[x[0]/l,0,x[2]/l];
+  var y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];
+  return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,
+    -(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]),-(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]),-(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]),1]);}
+function trans(x,y,z){return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,x,y,z,1]);}
+function rotX(a){var c=Math.cos(a),s=Math.sin(a);return new Float32Array([1,0,0,0,0,c,s,0,0,-s,c,0,0,0,0,1]);}
+function rotY(a){var c=Math.cos(a),s=Math.sin(a);return new Float32Array([c,0,-s,0,0,1,0,0,s,0,c,0,0,0,0,1]);}
+function rotZ(a){var c=Math.cos(a),s=Math.sin(a);return new Float32Array([c,s,0,0,-s,c,0,0,0,0,1,0,0,0,0,1]);}
+function aim(f,t){var d=[t[0]-f[0],t[1]-f[1],t[2]-f[2]],l=Math.hypot(d[0],d[1],d[2]);d=[d[0]/l,d[1]/l,d[2]/l];
+  var yl=Math.hypot(d[0],d[1])||1,y=[-d[1]/yl,d[0]/yl,0];
+  var z=[d[1]*y[2]-d[2]*y[1],d[2]*y[0]-d[0]*y[2],d[0]*y[1]-d[1]*y[0]];
+  return new Float32Array([d[0],d[1],d[2],0,y[0],y[1],y[2],0,z[0],z[1],z[2],0,f[0],f[1],f[2],1]);}
+function xf(m,p,w){return[m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12]*w,m[1]*p[0]+m[5]*p[1]+m[9]*p[2]+m[13]*w,
+  m[2]*p[0]+m[6]*p[1]+m[10]*p[2]+m[14]*w,m[3]*p[0]+m[7]*p[1]+m[11]*p[2]+m[15]*w];}
+var I=trans(0,0,0);
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+function scl(x,y,z){return new Float32Array([x,0,0,0,0,y,0,0,0,0,z,0,0,0,0,1]);}
+
+/* ================= geometry kit ================= */
+var TM=null,LOD=false;
+function tp(p){if(!TM)return p;var m=TM;return[m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12],m[1]*p[0]+m[5]*p[1]+m[9]*p[2]+m[13],m[2]*p[0]+m[6]*p[1]+m[10]*p[2]+m[14]];}
+function withT(m,fn){var o=TM;TM=o?mul(o,m):m;fn();TM=o;}
+function grp(){return{v:[],l:[],s:[],d:[]};}
+function poly(g,pts,col,edges){
+  var p=pts.map(tp),n=p.length,nx=0,ny=0,nz=0,i,a,b;
+  for(i=0;i<n;i++){a=p[i];b=p[(i+1)%n];
+    nx+=(a[1]-b[1])*(a[2]+b[2]);ny+=(a[2]-b[2])*(a[0]+b[0]);nz+=(a[0]-b[0])*(a[1]+b[1]);}
+  var L=Math.sqrt(nx*nx+ny*ny+nz*nz);if(L<1e-10)return null;nx/=L;ny/=L;nz/=L;
+  for(i=1;i<n-1;i++){var t=[p[0],p[i],p[i+1]];
+    for(var k=0;k<3;k++)g.v.push(t[k][0],t[k][1],t[k][2],nx,ny,nz,col[0],col[1],col[2]);}
+  if(edges!==false)for(i=0;i<n;i++){a=p[i];b=p[(i+1)%n];g.l.push(a[0],a[1],a[2],b[0],b[1],b[2]);}
+  return[nx,ny,nz];
+}
+function hard(g,a,b){a=tp(a);b=tp(b);g.l.push(a[0],a[1],a[2],b[0],b[1],b[2]);}
+function smooth(g,a,b,n1,n2){a=tp(a);b=tp(b);g.s.push(a[0],a[1],a[2],b[0],b[1],b[2],n1[0],n1[1],n1[2],n2[0],n2[1],n2[2]);}
+function dimline(g,a,b,tk){var q=[[a,b],[[a[0]-tk[0]*.3,a[1]-tk[1]*.3,a[2]-tk[2]*.3],[a[0]+tk[0],a[1]+tk[1],a[2]+tk[2]]],
+  [[b[0]-tk[0]*.3,b[1]-tk[1]*.3,b[2]-tk[2]*.3],[b[0]+tk[0],b[1]+tk[1],b[2]+tk[2]]]];
+  q.forEach(function(s){var u=tp(s[0]),v=tp(s[1]);g.d.push(u[0],u[1],u[2],v[0],v[1],v[2]);});}
+function loft(g,rings,col,caps,sideEdges){
+  var n=rings[0].length;
+  for(var i=0;i<rings.length-1;i++)for(var j=0;j<n;j++){var k=(j+1)%n;
+    poly(g,[rings[i][j],rings[i][k],rings[i+1][k],rings[i+1][j]],col,sideEdges);}
+  if(caps!==false){poly(g,rings[0],col);poly(g,rings[rings.length-1],col);}
+}
+function box(g,x0,x1,y0,y1,z0,z1,col){
+  loft(g,[[[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],[[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]]],col);
+}
+// surface of revolution about local X. prof: [x, r, 0 = smooth ring]
+function lathe(g,prof,seg,col,open){
+  if(LOD)seg=Math.max(6,seg>>1);
+  var n=prof.length,R=[],N=[],i,j,k;
+  for(i=0;i<n;i++){R[i]=[];for(j=0;j<seg;j++){var a=j/seg*Math.PI*2;
+    R[i].push([prof[i][0],prof[i][1]*Math.cos(a),prof[i][1]*Math.sin(a)]);}}
+  for(i=0;i<n-1;i++){N[i]=[];for(j=0;j<seg;j++){k=(j+1)%seg;
+    N[i][j]=poly(g,[R[i][j],R[i][k],R[i+1][k],R[i+1][j]],col,false);}}
+  for(i=0;i<n-1;i++)for(j=0;j<seg;j++){var p=N[i][(j+seg-1)%seg],q=N[i][j];if(p&&q)smooth(g,R[i][j],R[i+1][j],p,q);}
+  for(i=0;i<n;i++){if(prof[i][1]<1e-6)continue;
+    var end=(i===0||i===n-1);
+    if(end&&!open){poly(g,R[i],col);continue;}
+    for(j=0;j<seg;j++){k=(j+1)%seg;
+      if(!end&&prof[i][2]===0){if(N[i-1][j]&&N[i][j])smooth(g,R[i][j],R[i][k],N[i-1][j],N[i][j]);}
+      else hard(g,R[i][j],R[i][k]);}}
+}
+function cyl(g,b,axis,r0,r1,len,seg,col){
+  var m=trans(b[0],b[1],b[2]);
+  if(axis==='y')m=mul(m,rotZ(Math.PI/2));else if(axis==='z')m=mul(m,rotY(-Math.PI/2));
+  withT(m,function(){lathe(g,[[0,r0],[len,r1]],seg,col);});
+}
+function ring6(x,yb,ym,yt,w,wt){return[[x,yb,-w],[x,ym,-w],[x,yt,-wt],[x,yt,wt],[x,ym,w],[x,yb,w]];}
+function ring4(x,y0,y1,w){return[[x,y0,-w],[x,y1,-w],[x,y1,w],[x,y0,w]];}
+function key(l,i){return Math.round(l[i]*500)+','+Math.round(l[i+1]*500)+','+Math.round(l[i+2]*500);}
+function fin(g){var seen={},o=[],l=g.l;
+  for(var i=0;i<l.length;i+=6){var a=key(l,i),b=key(l,i+3),k=a<b?a+'|'+b:b+'|'+a;if(a===b||seen[k])continue;seen[k]=1;
+    for(var j=0;j<6;j++)o.push(l[i+j]);}
+  g.fa=new Float32Array(g.v);g.la=new Float32Array(o);g.sa=new Float32Array(g.s);g.da=new Float32Array(g.d);
+  g.v=g.l=g.s=g.d=null;return g;}
+
+var GREEN=[.42,.46,.35],GREEN2=[.35,.39,.29],DARK=[.1,.1,.1],TRK1=[.17,.15,.13],TRK2=[.25,.22,.19],
+    STEEL=[.42,.44,.46],DKST=[.22,.23,.25],BRASS=[.74,.6,.26],WHITE=[.78,.8,.82],ORNG=[.78,.45,.2],BLK=[.03,.03,.03];
+
+/* ================= shared parts ================= */
+function roadWheel(g,x,y,r,zc,detail,col){
+  col=col||GREEN2;
+  var s=zc>=0?1:-1;
+  withT(mul(trans(x,y,zc),rotY(-Math.PI/2)),function(){
+    lathe(g,[[s*.26,r*.8],[s*.26,r],[-s*.26,r],[-s*.26,r*.8]],18,DARK,true);
+    lathe(g,[[s*.3,0],[s*.3,r*.28],[s*.22,r*.42],[s*.22,r*.8]],18,col,true);
+    lathe(g,[[-s*.26,0],[-s*.26,r*.8]],18,col,true);
+    if(detail)for(var k=0;k<8;k++)(function(k){withT(rotX(k*45*D),function(){
+      cyl(g,[s*.3,r*.2,0],'x',.017,.017,s*.02,6,STEEL);});})(k);
+  });
+}
+function wheelAny(g,x,y,r,zc,col){
+  if(!LOD){roadWheel(g,x,y,r,zc,false,col);return;}
+  cyl(g,[x,y,zc-.26],'z',r,r,.52,20,DARK);cyl(g,[x,y,zc>0?zc+.26:zc-.3],'z',r*.6,r*.6,.04,16,col);
+}
+function barrel(g,col){
+  lathe(g,[[-.9,.17],[.8,.17]],16,col);
+  lathe(g,[[.8,.26],[1.1,.2],[2.1,.2],[2.2,.125],[4.0,.115]],20,col);
+  lathe(g,[[4.0,.2],[4.6,.2]],20,DKST);
+  cyl(g,[4.6,0,0],'x',.085,.085,.003,14,BLK);
+  for(var i=0;i<3;i++){var bx=4.1+i*.16;
+    box(g,bx,bx+.1,-.07,.07,.17,.207,BLK);box(g,bx,bx+.1,-.07,.07,-.207,-.17,BLK);}
+}
+function breech(g){
+  box(g,-1.3,-.9,-.26,.26,-.26,.26,STEEL);box(g,-1.33,-1.3,-.19,.19,-.19,.19,DKST);
+  box(g,-1.2,-1.0,-.1,.1,.26,.34,DKST);
+}
+function cradle(g,col){
+  box(g,.25,.8,-.33,.33,-.46,.46,col);
+  lathe(g,[[-.6,.24],[.25,.24]],16,DKST);
+  cyl(g,[-.85,.32,0],'x',.07,.07,1.0,10,STEEL);cyl(g,[-.85,-.32,0],'x',.07,.07,1.0,10,STEEL);
+  cyl(g,[.4,0,-.62],'z',.1,.1,1.24,12,STEEL);
+}
+function shell(g){
+  lathe(g,[[0,.08],[.4,.08],[.42,.076]],10,BRASS,true);poly(g,[[0,.08,0],[0,0,.08],[0,-.08,0],[0,0,-.08]],BRASS,false);
+  lathe(g,[[.42,.076],[.55,.076],[.62,.05,0],[.68,0,0]],10,DKST,true);
+}
+function drum(g){ // axis X, x 0..0.8, centred on its axle
+  cyl(g,[0,0,0],'x',.5,.5,.04,20,STEEL);
+  lathe(g,[[.76,.45],[.76,.5],[.8,.5],[.8,.45]],20,STEEL,true);
+  cyl(g,[0,0,0],'x',.1,.1,.8,10,DKST);
+  for(var k=0;k<10;k++)(function(k){
+    withT(rotX((k*36+18)*D),function(){box(g,.04,.76,.46,.5,-.03,.03,STEEL);});
+    withT(mul(rotX(k*36*D),trans(.06,.36,0)),function(){shell(g);});
+  })(k);
+}
+function ramRod(g){cyl(g,[-.55,0,0],'x',.035,.035,.55,8,STEEL);cyl(g,[0,0,0],'x',.065,.065,.04,10,DKST);}
+function loaderStatic(g){
+  box(g,-3.3,-2.66,-.12,.12,-.12,.12,DKST);
+  cyl(g,[-2.9,-.36,0],'x',.14,.14,.35,12,DKST);
+}
+function missile(P,seg){ // tail at x=0, nose at .95
+  lathe(P.tail,[[-.035,.042],[0,.03]],seg,DARK);
+  lathe(P.tail,[[0,.055],[.14,.055]],seg,WHITE);
+  for(var k=0;k<4;k++)(function(k){withT(rotX((45+k*90)*D),function(){
+    poly(P.tail,[[.01,.055,0],[.13,.055,0],[.1,.086,0],[.03,.086,0]],STEEL);
+    poly(P.war,[[.55,.055,0],[.7,.055,0],[.67,.068,0],[.58,.068,0]],STEEL);});})(k);
+  lathe(P.boost,[[.14,.055],[.3,.055],[.52,.055]],seg,WHITE);
+  lathe(P.war,[[.52,.055],[.56,.055],[.68,.055],[.72,.055]],seg,ORNG);
+  lathe(P.guide,[[.72,.055],[.8,.055],[.86,.048,0],[.91,.034,0],[.94,.016,0],[.95,0,0]],seg,DKST);
+}
+function launcher(g,seg){ // hinge at origin, pack along +x
+  box(g,0,1,0,.36,-.36,.36,GREEN);
+  box(g,.15,.2,-.006,.366,-.366,.366,GREEN2);box(g,.75,.8,-.006,.366,-.366,.366,GREEN2);
+  cyl(g,[0,0,-.36],'z',.03,.03,.72,8,STEEL);
+  [.09,.27].forEach(function(cy){[-.18,.18].forEach(function(cz){
+    box(g,1,1.012,cy-.075,cy+.075,cz-.075,cz+.075,GREEN2);
+    cyl(g,[1.012,cy,cz],'x',.05,.05,.004,12,BLK);
+    withT(trans(.03,cy,cz),function(){missile({tail:g,boost:g,war:g,guide:g},seg);});
+  });});
+}
+
+/* ================= sheet 1: tank ================= */
+function buildTank(){
+  var H=grp(),T=grp(),Gn=grp(),V=grp(),i;
+  loft(H,[ring4(-3.75,.75,1.3,1.15),ring4(-3.5,.45,1.3,1.15),ring4(3.0,.45,1.25,1.15),ring4(3.9,.95,1.05,.35)],GREEN2);
+  loft(H,[ring6(-3.85,1.3,1.45,1.6,1.75,1.4),ring6(-3.3,1.25,1.5,1.82,1.85,1.5),
+          ring6(2.0,1.25,1.5,1.82,1.85,1.5),ring6(3.0,1.2,1.4,1.6,1.5,1.0),ring6(3.95,1.0,1.1,1.2,.35,.25)],GREEN);
+  if(!LOD)for(i=0;i<5;i++){box(H,-3.2+i*.15,-3.1+i*.15,1.82,1.86,.4,1.3,DKST);box(H,-3.2+i*.15,-3.1+i*.15,1.82,1.86,-1.3,-.4,DKST);}
+  box(H,-3.25,-2.4,1.82,1.87,-.25,.25,GREEN2);
+  box(H,2.05,2.3,1.78,1.9,.3,.75,GREEN2);box(H,2.05,2.3,1.78,1.9,-.75,-.3,GREEN2);
+  box(H,2.55,2.75,1.6,1.74,1.0,1.25,GREEN2);box(H,2.55,2.75,1.6,1.74,-1.25,-1.0,GREEN2);
+  cyl(H,[3.0,1.62,1.05],'x',.07,.07,.1,10,STEEL);cyl(H,[3.0,1.62,-1.05],'x',.07,.07,.1,10,STEEL);
+  box(H,-1.6,1.4,1.5,1.56,1.84,1.9,GREEN2);box(H,-1.6,1.4,1.5,1.56,-1.9,-1.84,GREEN2);
+  cyl(H,[-4.0,1.5,1.2],'x',.17,.17,.35,14,STEEL);cyl(H,[-4.0,1.5,-1.2],'x',.17,.17,.35,14,STEEL);
+  cyl(H,[.2,1.8,0],'y',1.32,1.32,.08,32,GREEN2);
+  box(H,3.7,3.92,.72,.86,.45,.57,STEEL);box(H,3.7,3.92,.72,.86,-.57,-.45,STEEL);
+  [1,-1].forEach(function(s){
+    for(var i=0;i<5;i++)box(H,-3.3+i*1.18,-3.3+i*1.18+1.16,.92,1.25,s*1.86,s*1.9,GREEN);
+    box(H,2.0,3.45,1.2,1.25,s*1.15,s*1.85,GREEN2);
+    poly(H,[[3.45,1.25,s*1.15],[3.45,1.25,s*1.85],[3.75,.95,s*1.85],[3.75,.95,s*1.15]],GREEN2);
+    var zc=s*1.5;track(H,zc-.33,zc+.33,-3.3,3.0,.8,.42);
+    for(var w=0;w<7;w++)wheelAny(H,-2.55+w*(4.85/6),.48,.4,zc,GREEN2);
+    wheelAny(H,3.0,.8,.32,zc,GREEN2);wheelAny(H,-3.3,.8,.32,zc,GREEN2);
+    if(!LOD)for(var k=0;k<12;k++)(function(k){withT(mul(trans(-3.3,.8,zc),rotZ(k*30*D)),function(){box(H,.3,.39,-.035,.035,-.3,.3,STEEL);});})(k);
+  });
+  if(!LOD)dimline(H,[-4.0,0,2.6],[6.4,0,2.6],[0,0,-.35]);
+  // turret
+  loft(T,[ring6(-2.4,.3,.6,.9,1.0,.75),ring6(-2.0,.08,.55,1.1,1.5,1.05),
+          ring6(.9,.05,.5,1.15,1.5,1.0),ring6(1.9,.15,.5,.95,.8,.55)],GREEN);
+  box(T,1.45,2.05,.2,.92,.5,.78,GREEN2);box(T,1.45,2.05,.2,.92,-.78,-.5,GREEN2);
+  cyl(T,[-.5,1.1,.62],'y',.36,.34,.26,18,GREEN2);cyl(T,[-.5,1.36,.62],'y',.27,.27,.04,18,GREEN);
+  withT(mul(trans(-.6,1.12,-.6),rotZ(Math.PI/2)),function(){
+    lathe(T,[[0,.34],[.05,.34],[.12,.3,0],[.18,.2,0],[.2,0,0]],18,GREEN2);});
+  box(T,-.62,-.32,1.42,1.6,.55,.69,DKST);box(T,-.52,-.42,1.36,1.44,.57,.67,DKST);
+  cyl(T,[-.32,1.52,.62],'x',.025,.025,.95,8,DARK);
+  cyl(T,[-2.0,1.05,-.95],'y',.03,.03,.12,8,STEEL);cyl(T,[-2.0,1.17,-.95],'y',.012,.012,1.25,6,DARK);
+  box(T,-1.6,.4,.5,.56,1.5,1.55,GREEN2);box(T,-1.6,.4,.5,.56,-1.55,-1.5,GREEN2);
+  box(T,-2.06,-1.98,1.08,1.16,.3,.4,STEEL);box(T,-2.06,-1.98,1.08,1.16,-.4,-.3,STEEL);
+  cradle(Gn,GREEN2);barrel(Gn,GREEN);breech(Gn);
+  // autoloader rides the elevating cradle so the drum stays lined up with the breech
+  if(!LOD){withT(trans(-2.55,-.36,0),function(){drum(Gn);});
+  loaderStatic(Gn);withT(trans(-2.6,0,0),function(){ramRod(Gn);});
+  box(Gn,-3.3,-.6,-.2,-.14,.3,.36,DKST);box(Gn,-3.3,-.6,-.2,-.14,-.36,-.3,DKST);}
+  if(LOD)box(V,0,1,0,.36,-.36,.36,GREEN);else launcher(V,8);
+  return{name:'TANK',sub:'General exterior &mdash; sheet 1 of 4',dwg:'KT-2251S-S1-R0',R:6.6,tg:[.9,1.15,0],
+    groups:[H,T,Gn,V].map(fin),
+    sl:[['TURRET',-180,180,0,'°'],['GUN ELEV.',-8,20,0,'°'],['VLS DEPLOY',0,100,0,'%']],
+    pose:function(p){var M1=mul(trans(.2,1.8,0),rotY(-p[0]*D)),M2=mul(M1,mul(trans(1.6,.55,0),rotZ(p[1]*D))),
+      M3=mul(M1,mul(trans(-2.0,1.13,0),rotZ(p[2]*.85*D)));return[I,M1,M2,M3];},
+    labels:[{g:0,p:[3.3,1.4,.45],t:'FRONT HULL ARMOR',v:'750 mm @ 67\u00b0 = 1930 mm'},{g:2,p:[.8,.1,.3],t:'TURRET FRONT',v:'750 mm'},
+      {g:1,p:[-.5,.6,1.5],t:'TURRET SIDE',v:'250 mm'},{g:3,p:[.5,.36,0],t:'4-CELL ROOF VLS'},
+      {g:2,p:[3.2,.12,0],t:'152 mm M-10 HOWITZER'},
+      {g:1,p:[-2.4,.6,0],t:'TURRET REAR',v:'240 mm',w:1},{g:0,p:[-3.85,1.4,-.6],t:'REAR HULL ARMOR',v:'220 mm',w:1},
+      {g:1,p:[-.6,1.3,-.6],t:'APS RADAR DOME',w:1},{g:0,p:[0,1.1,1.9],t:'SPACED SIDE SKIRTS',w:1}],
+    dims:[{g:0,p:[1.2,0,2.6],t:'LENGTH: 10 400 mm'}],
+    specs:[['WEIGHT','68 TONS'],['TOP SPEED','80 KM/H'],['MAIN GUN','152 mm M-10 HOWITZER'],['PENETRATION','350 MM'],['FRONT ARMOUR','750 MM PLATE'],['GLACIS EFFECTIVE','1930 MM AT 67\u00b0'],
+      ['MAGAZINE','10 ROUNDS / 1 S RELOAD'],['CREW','4'],['POWERPACK','1800 HP TURBINE']]};
+}
+function trackOutline(xr,xf,cy,r){
+  var p=[[xr+.75,0],[xf-.7,0]],a;
+  for(a=-75;a<=90;a+=15)p.push([xf+r*Math.cos(a*D),cy+r*Math.sin(a*D)]);
+  for(a=90;a<=255;a+=15)p.push([xr+r*Math.cos(a*D),cy+r*Math.sin(a*D)]);
+  var n=p.length,tot=0,i,seg=[];
+  for(i=0;i<n;i++){var q=p[(i+1)%n],d=Math.hypot(q[0]-p[i][0],q[1]-p[i][1]);seg.push(d);tot+=d;}
+  var N=Math.round(tot/(LOD?.5:.17)),step=tot/N,out=[],acc=0,si=0;
+  for(i=0;i<N;i++){var t=i*step;while(acc+seg[si]<t){acc+=seg[si];si++;}
+    var f=(t-acc)/seg[si],A=p[si],B=p[(si+1)%n];out.push([A[0]+(B[0]-A[0])*f,A[1]+(B[1]-A[1])*f]);}
+  return out;
+}
+function track(g,z0,z1,xr,xf,cy,r){
+  var o=trackOutline(xr,xf,cy,r),N=o.length,inn=[],i;
+  for(i=0;i<N;i++){var a=o[(i+N-1)%N],b=o[(i+1)%N],tx=b[0]-a[0],ty=b[1]-a[1],L=Math.hypot(tx,ty);
+    var nx=ty/L,ny=-tx/L;if(nx*o[i][0]+ny*(o[i][1]-.6)<0){nx=-nx;ny=-ny;}
+    inn.push([o[i][0]-nx*.08,o[i][1]-ny*.08]);}
+  for(i=0;i<N;i++){var j=(i+1)%N,c=i%2?TRK1:TRK2,A=o[i],B=o[j],C=inn[i],E=inn[j];
+    poly(g,[[A[0],A[1],z0],[B[0],B[1],z0],[B[0],B[1],z1],[A[0],A[1],z1]],c);
+    if(!LOD)poly(g,[[C[0],C[1],z0],[E[0],E[1],z0],[E[0],E[1],z1],[C[0],C[1],z1]],TRK1,false);
+    poly(g,[[A[0],A[1],z0],[B[0],B[1],z0],[E[0],E[1],z0],[C[0],C[1],z0]],TRK1,false);
+    poly(g,[[A[0],A[1],z1],[B[0],B[1],z1],[E[0],E[1],z1],[C[0],C[1],z1]],TRK1,false);}
+}
+
+/* ================= sheet 2: gun + autoloader ================= */
+var an={t:-1,shots:0};
+function ease(u){return u*u*(3-2*u);}
+function buildGun(){
+  var S=grp(),Rc=grp(),Dr=grp(),Rm=grp();
+  cradle(S,GREEN2);loaderStatic(S);
+  box(S,-3.4,.9,-1.06,-1.0,-.7,.7,DKST);
+  box(S,.28,.52,-1.0,0,.5,.62,DKST);box(S,.28,.52,-1.0,0,-.62,-.5,DKST);
+  box(S,-2.45,-1.85,-1.0,-.86,-.35,.35,DKST);
+  box(S,-3.2,-2.8,-1.0,-.12,-.08,.08,DKST);
+  barrel(Rc,GREEN);breech(Rc);
+  dimline(Rc,[-1.3,.62,0],[1.1,.62,0],[0,-.2,0]);
+  drum(Dr);ramRod(Rm);
+  return{name:'GUN',sub:'Main armament &amp; autoloader &mdash; sheet 2 of 4',dwg:'KT-2251S-S2-R0',R:4.3,tg:[.6,-.2,0],
+    groups:[S,Rc,Dr,Rm].map(fin),
+    sl:[['DRUM',0,360,0,'°'],['RECOIL',0,100,0,'%']],action:'FIRE CYCLE',
+    pose:function(p){var t=an.t,rec=0,de=0,ram=0;
+      if(t>=0){rec=t<.08?t/.08:t<.4?1-(t-.08)/.32:0;de=t<.4?0:t<.7?ease((t-.4)/.3):1;ram=t<.7?0:Math.sin((t-.7)/.3*Math.PI);}
+      rec=Math.min(1,p[1]/100+rec);
+      return[I,trans(-rec*.45,0,0),mul(trans(-2.55,-.36,0),rotX((p[0]+(an.shots+de)*36)*D)),trans(-2.6+ram*.88,0,0)];},
+    labels:[{g:1,p:[3.0,.12,0],t:'152 mm M-10 HOWITZER'},{g:1,p:[4.3,.2,0],t:'MUZZLE BRAKE'},
+      {g:0,p:[-2.15,.14,0],t:'10-ROUND ROTARY DRUM',v:'1 s RELOAD'},{g:1,p:[-1.1,.26,.1],t:'BREECH BLOCK'},
+      {g:0,p:[-3.0,.12,0],t:'FEED RAMMER'},{g:0,p:[-2.75,-.36,.14],t:'DRUM DRIVE MOTOR',w:1},
+      {g:0,p:[-.4,.39,0],t:'RECOIL CYLINDERS',w:1}],
+    dims:[{g:1,p:[-.1,.62,0],t:'BREECH LENGTH: 2400 mm'}],
+    specs:[['CALIBRE','152 MM'],['TYPE','M-10 HOWITZER'],['AUTOLOADER','10-ROUND ROTARY DRUM'],['RELOAD','1 S'],
+      ['BREECH LENGTH','2400 MM'],['PENETRATION','350 MM']]};
+}
+
+/* ================= sheet 3: missile + VLS ================= */
+function buildMissile(){
+  var S=grp(),L=grp(),P={tail:grp(),boost:grp(),war:grp(),guide:grp()};
+  box(S,-.9,.9,-.05,0,-.65,1.4,GREEN2);
+  box(S,-.56,-.48,0,.06,.26,.34,STEEL);box(S,-.56,-.48,0,.06,-.34,-.26,STEEL);
+  box(S,-.3,-.25,0,.19,.98,1.12,DKST);box(S,-.02,.03,0,.19,.98,1.12,DKST);
+  dimline(S,[-.475,.002,1.3],[.475,.002,1.3],[0,0,-.08]);
+  launcher(L,10);missile(P,16);
+  var b=[-.475,.25,1.05];
+  return{name:'MISSILE',sub:'Anti-air / drone missile system &mdash; sheet 3 of 4',dwg:'KT-2251S-S3-R0',R:1.3,tg:[0,.3,.35],
+    groups:[S,L,P.tail,P.boost,P.war,P.guide].map(fin),
+    sl:[['VLS DEPLOY',0,100,60,'%'],['EXPLODE',0,100,0,'%']],
+    pose:function(p){var e=p[1]/100;return[I,mul(trans(-.5,.03,0),rotZ(p[0]*.85*D)),
+      trans(b[0]-e*.16,b[1],b[2]),trans(b[0],b[1],b[2]),trans(b[0]+e*.16,b[1],b[2]),trans(b[0]+e*.32,b[1],b[2])];},
+    labels:[{g:1,p:[.5,.36,0],t:'RETRACTABLE 4-CELL ROOF VLS'},{g:5,p:[.86,.048,0],t:'RADAR / IR GUIDANCE HEAD'},
+      {g:4,p:[.62,.055,0],t:'KINETIC INTERCEPTOR WARHEAD'},{g:3,p:[.33,.055,0],t:'SOLID ROCKET BOOSTER'},
+      {g:2,p:[.07,.058,.058],t:'CONTROL FINS',w:1}],
+    dims:[{g:0,p:[0,.002,1.3],t:'LENGTH: 950 mm'}],
+    specs:[['MISSILE','“SKY-SPEAR” INTERCEPTOR'],['GUIDANCE','RADAR / IR'],['WARHEAD','KINETIC INTERCEPTOR'],
+      ['MOTOR','SOLID ROCKET BOOSTER'],['RANGE','UP TO 8 KM'],['LAUNCHER','4-CELL ROOF VLS']]};
+}
+
+/* ================= sheet 4: suspension ================= */
+function buildSusp(o){
+  o=o||{t:'t',r:.4,kt:1};
+  var S=grp(),A=grp(),Wh=grp(),Db=grp(),Dr=grp(),i,r=o.r,T=o.t,ty=-.211-r,tw=o.inter?1.08:.79;
+  box(S,-1.15,.55,-.35,T==='c'?.82:.65,-.04,0,GREEN2);
+  cyl(S,[0,0,0],'z',.09,.09,.03,14,DKST);
+  if(T==='t'){cyl(S,[0,0,-1.2],'z',.035,.035,1.2,10,STEEL);box(S,-.08,.08,-.08,.08,-1.3,-1.2,DKST);
+    box(S,-.56,-.38,.34,.38,0,.16,DKST);
+    withT(mul(trans(-.47,.34,.08),rotZ(-Math.PI/2)),function(){
+      lathe(S,[[0,.075],[.05,.075],[.05,.06],[.1,.06],[.1,.045],[.15,.045],[.15,.03],[.2,.03]],14,STEEL);});}
+  if(T!=='c')box(S,-.29,-.21,.39,.47,0,.13,DKST);else box(S,-.16,-.04,.6,.7,0,.14,DKST);
+  if(T==='h'){withT(trans(-.25,.6,.09),function(){lathe(S,[[-.13,0],[-.09,.09,0],[0,.13,0],[.09,.09,0],[.13,0]],14,STEEL);});box(S,-.33,-.17,.45,.5,0,.16,DKST);}
+  for(i=0;i<8;i++)box(S,-1.15+i*.17,-1.15+i*.17+.16,ty-.078,ty-.001,.13,tw,i%2?TRK1:TRK2);
+  if(o.inter)withT(mul(trans(0,0,.74),scl(1,1,.5)),function(){roadWheel(S,.1,-.211,r,.3,false);});
+  var pr=[[.1,0],[.05,.09],[-.5,.075],[-.57,.04],[-.57,-.04],[-.5,-.075],[.05,-.09]];
+  loft(A,[pr.map(function(q){return[q[0],q[1],.03];}),pr.map(function(q){return[q[0],q[1],.13];})],GREEN);
+  box(A,-.37,-.31,.07,.13,.05,.11,DKST);
+  cyl(A,[-.5,0,.13],'z',.05,.05,.1,10,STEEL);cyl(A,[0,0,.13],'z',.08,.08,.03,12,DKST);
+  roadWheel(Wh,0,0,r,.46,true);
+  if(T==='c')springUnit(Db,false);
+  else{cyl(Db,[0,0,0],'x',T==='h'?.05:.035,T==='h'?.05:.035,.26,10,DKST);cyl(Db,[-.03,0,0],'x',.02,.02,.03,8,STEEL);
+    cyl(Dr,[0,0,0],'x',T==='h'?.024:.016,T==='h'?.024:.016,.32,8,STEEL);cyl(Dr,[0,0,0],'x',.026,.026,.03,8,DKST);}
+  var mt=T==='c'?[-.1,.65,.08]:[-.25,.43,.08];
+  var lab=T==='t'?[{g:0,p:[0,.035,-.7],t:'TORSION BAR SPRING'},{g:3,p:[.13,.035,0],t:'HYDRAULIC DAMPENER'},{g:0,p:[-.47,.25,.15],t:'VOLUTE SPRING BUFFER'}]
+    :T==='c'?[{g:3,p:[.5,.07,0],t:'CHRISTIE COIL SPRING'},{g:0,p:[-.1,.7,.14],t:'SPRING MOUNT IN HULL SIDE'}]
+    :[{g:3,p:[.13,.05,0],t:'HYDROGAS STRUT'},{g:0,p:[-.25,.6,.22],t:'NITROGEN ACCUMULATOR'}];
+  lab.push({g:2,p:[0,0,.76],t:'ROAD WHEEL HUB BEARING'},{g:1,p:[-.25,.08,.13],t:'SUSPENSION ARM',w:1},{g:0,p:[-1.0,ty,tw],t:'PINNED TRACK LINK',w:1});
+  if(o.inter)lab.push({g:0,p:[.1,-.211,1.04],t:'INTERLEAVED OUTER WHEEL'});
+  return{name:'SUSPENSION',sub:(T==='t'?(o.kt?'Torsion-bar suspension arm &amp; road wheel station &mdash; sheet 4 of 4':(o.inter?'Interleaved torsion-bar suspension station':'Torsion-bar suspension station'))
+      :T==='c'?'Christie coil-spring suspension station':'Hydrogas (hydropneumatic) suspension station'),dwg:'KT-2251S-S4-R0',
+    R:1.45,tg:[-.35,0,-.1],groups:[S,A,Wh,Db,Dr].map(fin),
+    sl:[['TRAVEL',-12,18,0,'°'],['ROLL',0,360,0,'°']],
+    pose:function(p){var M1=rotZ((25-p[0])*D),M2=mul(M1,mul(trans(-.5,0,0),rotZ(-p[1]*D)));
+      var lug=xf(M1,[-.34,.1,.08],1);
+      if(T==='c')return[I,M1,M2,mul(aim(lug,mt),scl(Math.hypot(mt[0]-lug[0],mt[1]-lug[1]),1,1)),I];
+      return[I,M1,M2,aim(mt,lug),aim(lug,mt)];},
+    labels:lab,dims:[],
+    specs:T==='t'?(o.kt?[['SPRINGING','REINFORCED TORSION BAR'],['DAMPING','HYDRAULIC DAMPENER'],['BUMP STOP','VOLUTE SPRING BUFFER'],['ROAD WHEELS','7 PER SIDE'],['TRACK','PINNED LINK, RUBBER PAD']]
+        :[['SPRINGING','TORSION BAR'],['DAMPING','HYDRAULIC DAMPER'],['LAYOUT',o.inter?'INTERLEAVED / OVERLAPPING WHEELS':'SINGLE ROW OF WHEELS']])
+      :T==='c'?[['SPRINGING','CHRISTIE COIL SPRING'],['DAMPING','NONE (SPRING ONLY)'],['LAYOUT','LARGE WHEELS, NO RETURN ROLLERS']]
+      :[['SPRINGING','HYDROGAS UNIT (NITROGEN)'],['DAMPING','BUILT INTO THE UNIT'],['LAYOUT','EXTERNALLY MOUNTED UNITS']]};
+}
+
+var sheets=[buildTank(),buildGun(),buildMissile(),buildSusp()];
+sheets.forEach(function(s){s.p=s.sl.map(function(q){return q[3];});});
+
+/* ================= canvas + software depth renderer ================= */
+var cv=document.getElementById('c'),view=document.getElementById('view'),ctx=cv.getContext('2d');
+var off=document.createElement('canvas'),octx=off.getContext('2d');
+var img=null,pxb=null,zb=null,zw=0,zh=0,budget=230000,SX=[0,0,0],SY=[0,0,0],SZ=[0,0,0];
+var cur=0,yaw=.85,pitch=.36,zoom=1,solid=false,xray=false,labelsOn=true,spin=true,need=true;
+var W=1,H=1,dpr=1;
+function resize(){dpr=Math.min(window.devicePixelRatio||1,2);W=Math.max(1,view.clientWidth);H=Math.max(1,view.clientHeight);
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);need=true;}
+if(window.ResizeObserver)new ResizeObserver(resize).observe(view);else window.addEventListener('resize',resize);
+resize();
+
+function depthPass(G,VP,M,eye){
+  var w=zw,h=zh,gi,t,k,P,a,m,ix,LX=.4494,LY=.799,LZ=.3995;
+  var fillc=((xray?105:215)<<24|58<<16|32<<8|14)>>>0;
+  pxb.fill(0);zb.fill(9);
+  for(gi=0;gi<G.length;gi++){
+    m=M[gi];P=mul(VP,m);a=G[gi].fa;var nt=a.length/27;
+    for(t=0;t<nt;t++){
+      var o=t*27,x,y,z;
+      for(k=0;k<3;k++){var q=o+k*9;x=a[q];y=a[q+1];z=a[q+2];
+        var cw=P[3]*x+P[7]*y+P[11]*z+P[15];
+        SX[k]=((P[0]*x+P[4]*y+P[8]*z+P[12])/cw*.5+.5)*w;
+        SY[k]=(.5-(P[1]*x+P[5]*y+P[9]*z+P[13])/cw*.5)*h;
+        SZ[k]=(P[2]*x+P[6]*y+P[10]*z+P[14])/cw;}
+      var x0=SX[0],y0=SY[0],x1=SX[1],y1=SY[1],x2=SX[2],y2=SY[2];
+      var ar=(x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);if(ar>-1e-7&&ar<1e-7)continue;
+      var mnx=Math.max(0,Math.floor(Math.min(x0,x1,x2))),mxx=Math.min(w-1,Math.ceil(Math.max(x0,x1,x2)));
+      var mny=Math.max(0,Math.floor(Math.min(y0,y1,y2))),mxy=Math.min(h-1,Math.ceil(Math.max(y0,y1,y2)));
+      if(mnx>mxx||mny>mxy)continue;
+      var col=fillc;
+      if(solid){
+        x=a[o];y=a[o+1];z=a[o+2];
+        var vx=eye[0]-(m[0]*x+m[4]*y+m[8]*z+m[12]),vy=eye[1]-(m[1]*x+m[5]*y+m[9]*z+m[13]),
+            vz=eye[2]-(m[2]*x+m[6]*y+m[10]*z+m[14]),vl=Math.sqrt(vx*vx+vy*vy+vz*vz);vx/=vl;vy/=vl;vz/=vl;
+        x=a[o+3];y=a[o+4];z=a[o+5];
+        var nx=m[0]*x+m[4]*y+m[8]*z,ny=m[1]*x+m[5]*y+m[9]*z,nz=m[2]*x+m[6]*y+m[10]*z;
+        var nv=nx*vx+ny*vy+nz*vz;if(nv<0){nx=-nx;ny=-ny;nz=-nz;nv=-nv;}
+        var d=Math.max(nx*LX+ny*LY+nz*LZ,0)*.9,am=.5+.5*ny;
+        var hx=LX+vx,hy=LY+vy,hz=LZ+vz,hl=Math.sqrt(hx*hx+hy*hy+hz*hz);
+        var sp=Math.pow(Math.max((nx*hx+ny*hy+nz*hz)/hl,0),24)*.16+Math.pow(1-nv,3)*.1;
+        var r=Math.min(255,(a[o+6]*(.2+.3*am+d)+sp)*255)|0,g2=Math.min(255,(a[o+7]*(.2+.33*am+d*.96)+sp)*255)|0,
+            b=Math.min(255,(a[o+8]*(.24+.34*am+d*.88)+sp)*255)|0;
+        col=(255<<24|b<<16|g2<<8|r)>>>0;
+      }
+      var inv=1/ar,d0=(y1-y2)*inv,d1=(y2-y0)*inv,e0=(x2-x1)*inv,e1=(x0-x2)*inv;
+      var z0=SZ[0],z1=SZ[1],z2=SZ[2],dz=d0*z0+d1*z1-(d0+d1)*z2,dzy=e0*z0+e1*z1-(e0+e1)*z2;
+      var bias=Math.min(.03,1.6*(Math.abs(dz)+Math.abs(dzy)))+.0012;z0+=bias;z1+=bias;z2+=bias;
+      for(var yy=mny;yy<=mxy;yy++){
+        var py=yy+.5,px=mnx+.5;
+        var w0=((x1-px)*(y2-py)-(x2-px)*(y1-py))*inv,w1=((x2-px)*(y0-py)-(x0-px)*(y2-py))*inv;
+        var zz=w0*z0+w1*z1+(1-w0-w1)*z2;ix=yy*w+mnx;
+        for(var xx=mnx;xx<=mxx;xx++){
+          if(w0>=-1e-4&&w1>=-1e-4&&w0+w1<=1.0001&&zz<zb[ix]){zb[ix]=zz;pxb[ix]=col;}
+          w0+=d0;w1+=d1;zz+=dz;ix++;}
+      }
+    }
+  }
+}
+var LV=[],LS=[],LH=[],LD=[];
+function seg(ax,ay,az,bx,by,bz,vis,hid){
+  var dx=bx-ax,dy=by-ay,n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/1.5);if(n<1)n=1;if(n>2500)n=2500;
+  var st=-1,rs=0,k,f,v;
+  for(k=0;k<=n;k++){f=k/n;var X=Math.floor(ax+dx*f),Y=Math.floor(ay+dy*f);
+    v=(X<0||X>=zw||Y<0||Y>=zh)?1:(az+(bz-az)*f<=zb[Y*zw+X]?1:0);
+    if(v!==st){if(st>=0){f=(k-.5)/n;var arr=st?vis:hid;if(arr)arr.push(ax+dx*rs,ay+dy*rs,ax+dx*f,ay+dy*f);rs=f;}st=v;}}
+  var ar2=st?vis:hid;if(ar2)ar2.push(ax+dx*rs,ay+dy*rs,bx,by);
+}
+function strokeList(a,style,lw){if(!a.length)return;ctx.beginPath();
+  for(var i=0;i<a.length;i+=4){ctx.moveTo(a[i],a[i+1]);ctx.lineTo(a[i+2],a[i+3]);}
+  ctx.strokeStyle=style;ctx.lineWidth=lw;ctx.stroke();}
+
+var lastScale='';
+function render(){
+  var S=sheets[cur],G=S.groups,fov=26*D,th=Math.tan(fov/2),as=W/H;
+  var s=Math.min(1,Math.sqrt(budget/(cv.width*cv.height))),nw=Math.max(8,Math.round(cv.width*s)),nh=Math.max(8,Math.round(cv.height*s));
+  if(nw!==zw||nh!==zh){zw=nw;zh=nh;off.width=zw;off.height=zh;img=octx.createImageData(zw,zh);
+    pxb=new Uint32Array(img.data.buffer);zb=new Float32Array(zw*zh);}
+  var dist=S.R*Math.max(.58/Math.sin(Math.atan(th)),.8/Math.sin(Math.atan(th*as)))*zoom,tg=S.tg;
+  var eye=[tg[0]+dist*Math.cos(pitch)*Math.cos(yaw),tg[1]+dist*Math.sin(pitch),tg[2]+dist*Math.cos(pitch)*Math.sin(yaw)];
+  var VP=mul(persp(fov,as,Math.max(dist-1.15*S.R,dist*.02),dist+1.15*S.R),look(eye,tg)),M=S.pose(S.p);
+  depthPass(G,VP,M,eye);
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
+  octx.putImageData(img,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,cv.width,cv.height);
+  // ---- linework
+  LV.length=LS.length=LH.length=LD.length=0;
+  var hid=xray?LH:null,gi,i,a,P,m;
+  function pr(P,a,i){var cw=P[3]*a[i]+P[7]*a[i+1]+P[11]*a[i+2]+P[15];
+    return[((P[0]*a[i]+P[4]*a[i+1]+P[8]*a[i+2]+P[12])/cw*.5+.5)*zw,(.5-(P[1]*a[i]+P[5]*a[i+1]+P[9]*a[i+2]+P[13])/cw*.5)*zh,
+      (P[2]*a[i]+P[6]*a[i+1]+P[10]*a[i+2]+P[14])/cw];}
+  for(gi=0;gi<G.length;gi++){m=M[gi];P=mul(VP,m);
+    a=G[gi].la;for(i=0;i<a.length;i+=6){var u=pr(P,a,i),v=pr(P,a,i+3);seg(u[0],u[1],u[2],v[0],v[1],v[2],LV,hid);}
+    a=G[gi].da;for(i=0;i<a.length;i+=6){u=pr(P,a,i);v=pr(P,a,i+3);seg(u[0],u[1],u[2],v[0],v[1],v[2],LD,null);}
+    a=G[gi].sa;for(i=0;i<a.length;i+=12){
+      var x=a[i],y=a[i+1],z=a[i+2];
+      var ex=eye[0]-(m[0]*x+m[4]*y+m[8]*z+m[12]),ey=eye[1]-(m[1]*x+m[5]*y+m[9]*z+m[13]),ez=eye[2]-(m[2]*x+m[6]*y+m[10]*z+m[14]);
+      x=a[i+6];y=a[i+7];z=a[i+8];var sA=(m[0]*x+m[4]*y+m[8]*z)*ex+(m[1]*x+m[5]*y+m[9]*z)*ey+(m[2]*x+m[6]*y+m[10]*z)*ez;
+      x=a[i+9];y=a[i+10];z=a[i+11];var sB=(m[0]*x+m[4]*y+m[8]*z)*ex+(m[1]*x+m[5]*y+m[9]*z)*ey+(m[2]*x+m[6]*y+m[10]*z)*ez;
+      if(sA*sB>0)continue;
+      u=pr(P,a,i);v=pr(P,a,i+3);seg(u[0],u[1],u[2],v[0],v[1],v[2],LS,hid);}
+  }
+  var kx=cv.width/zw,ky=cv.height/zh,u1=dpr/kx;
+  ctx.setTransform(kx,0,0,ky,0,0);ctx.lineCap='round';
+  if(solid){strokeList(LV,'rgba(6,10,14,.5)',.9*u1);strokeList(LS,'rgba(6,10,14,.7)',1.2*u1);
+    strokeList(LH,'rgba(200,225,255,.22)',.8*u1);}
+  else{strokeList(LH,'rgba(150,195,255,.3)',.8*u1);strokeList(LV,'#e9f2ff',1*u1);strokeList(LS,'#ffffff',1.5*u1);}
+  strokeList(LD,'#7fd0ff',.9*u1);
+  // ---- annotations (css px)
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var fs=W<600?10:11;ctx.font='600 '+fs+'px ui-monospace,Menlo,Consolas,monospace';ctx.textBaseline='alphabetic';
+  function scr(g,p){var w4=xf(M[g],p,1),c=xf(VP,w4,1);var sx=(c[0]/c[3]*.5+.5),sy=(.5-c[1]/c[3]*.5),zz=c[2]/c[3];
+    var X=Math.floor(sx*zw),Y=Math.floor(sy*zh),vis=(X<0||X>=zw||Y<0||Y>=zh)||zz<=zb[Y*zw+X]+.004;
+    return[sx*W,sy*H,vis];}
+  if(labelsOn){
+    var it=[],j;
+    S.labels.forEach(function(L){if(L.w&&W<600)return;var q=scr(L.g,L.p);
+      var tw=ctx.measureText(L.t+(L.v?'  '+L.v:'')).width,dir=q[0]>=W/2?1:-1,x0=dir>0?q[0]+30:q[0]-30-tw;
+      x0=Math.max(12,Math.min(W-12-tw,x0));
+      it.push({sx:q[0],sy:q[1],vis:q[2],x0:x0,tw:tw,ey:Math.max(64,Math.min(H-44,q[1]+(q[1]<H*.52?-26:26))),L:L});});
+    it.sort(function(p,q){return p.ey-q.ey;});
+    for(i=0;i<it.length;i++)for(j=0;j<i;j++){var A=it[i],B=it[j];
+      if(A.x0<B.x0+B.tw+8&&B.x0<A.x0+A.tw+8&&Math.abs(A.ey-B.ey)<fs+6)A.ey=B.ey+fs+6;}
+    it.forEach(function(A){ctx.globalAlpha=A.vis?1:.38;
+      var near=Math.abs(A.x0-A.sx)<Math.abs(A.x0+A.tw-A.sx)?A.x0:A.x0+A.tw;
+      ctx.beginPath();ctx.moveTo(A.sx,A.sy);ctx.lineTo(near,A.ey);ctx.moveTo(A.x0,A.ey);ctx.lineTo(A.x0+A.tw,A.ey);
+      ctx.strokeStyle='#e9f2ff';ctx.lineWidth=.8;ctx.stroke();
+      ctx.beginPath();ctx.arc(A.sx,A.sy,2.2,0,6.2832);ctx.fillStyle='#e9f2ff';ctx.fill();
+      ctx.fillText(A.L.t,A.x0,A.ey-4);
+      if(A.L.v){ctx.fillStyle='#7fd0ff';ctx.fillText(A.L.v,A.x0+ctx.measureText(A.L.t+'  ').width,A.ey-4);}
+    });
+    ctx.globalAlpha=1;ctx.fillStyle='#7fd0ff';ctx.textAlign='center';
+    S.dims.forEach(function(Dm){var q=scr(Dm.g,Dm.p);if(q[2])ctx.fillText(Dm.t,q[0],q[1]-6);});
+    ctx.textAlign='left';
+  }
+  // ---- scale bar + live scale
+  var ppm=(H/2)/(dist*th),opts=[.05,.1,.2,.25,.5,1,2,5],Lm=opts[0],tgt=Math.min(190,W*.36);
+  opts.forEach(function(o){if(o*4*ppm<=tgt)Lm=o;});
+  var bx=18,by=H-24,bw=Lm*ppm;ctx.font='500 9px ui-monospace,Menlo,Consolas,monospace';ctx.fillStyle='#e9f2ff';
+  ctx.strokeStyle='#e9f2ff';ctx.lineWidth=.8;ctx.textAlign='center';
+  for(i=0;i<4;i++){if(i%2===0)ctx.fillRect(bx+i*bw,by,bw,5);ctx.strokeRect(bx+i*bw,by,bw,5);}
+  for(i=0;i<=4;i++){var val=Lm<1?Math.round(i*Lm*1000):i*Lm;ctx.fillText(val+(i===4?(Lm<1?' mm':' m'):''),bx+i*bw,by+15);}
+  ctx.textAlign='left';
+  var sc='1:'+Math.max(1,Math.round(1000/(ppm*.2646)));
+  if(sc!==lastScale){lastScale=sc;document.getElementById('scl').textContent=sc;}
+}
+
+/* ================= BATTLE MODE ================= */
+function wrap(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a;}
+var seed=90210;function RN(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+var TS=6,NG=161,HALF=480,hmap=null,tcol=null,ccol=null,trees=[];
+function hAt(x,z){var gx=clamp((x+HALF)/TS,0,NG-1.001),gz=clamp((z+HALF)/TS,0,NG-1.001),i=gx|0,j=gz|0,fx=gx-i,fz=gz-j,k=j*NG+i;
+  return(hmap[k]*(1-fx)+hmap[k+1]*fx)*(1-fz)+(hmap[k+NG]*(1-fx)+hmap[k+NG+1]*fx)*fz;}
+function pack(r,g,b){return(255<<24|(clamp(b,0,1)*255|0)<<16|(clamp(g,0,1)*255|0)<<8|(clamp(r,0,1)*255|0))>>>0;}
+var KT={name:'KT-2251S',hl:3.9,hw:1.85,tx:.2,ty:1.8,gx:1.6,gy:.55,mz:4.6,top:3.0,arm:{UG:750,LP:750,TF:750,TS:250,TR:240,HS:150,HR:220,TOP:60},pen:350,vmax:22,v0:600,rl:1,mag:10,magRl:10,sight:[1.7,1.5,0],trav:.7,acc:4.5,disp:.0012,gun:'152 mm M-10 HOWITZER',era:1};
+var TYPES=[
+ {name:'M1A2 ABRAMS',gun:'120 mm M256',era:1,col:[.6,.54,.4],hl:3.95,hw:1.83,hy:1.55,th:.82,tx:-.2,gl:4.9,nw:7,to:[[1.6,.6],[1.2,1.5],[-1.1,1.6],[-2.5,1.3]],arm:{UG:120,LP:300,TF:650,TS:150,TR:60,HS:80,HR:40,TOP:40},pen:700,rl:6,vmax:15,
+  ex:function(T,G,c,c2){box(T,-.5,.1,.82,1.12,.5,1.0,c2);cyl(T,[-.2,.82,-.7],'y',.22,.22,.4,12,c2);box(T,-2.9,-2.5,.1,.6,-1.2,1.2,c2);}},
+ {name:'LEOPARD 2A7',gun:'120 mm L/55',era:1,col:[.32,.37,.26],hl:3.85,hw:1.85,hy:1.55,th:.9,tx:-.1,gl:5.5,nw:7,to:[[2.0,.3],[.6,1.55],[-.9,1.6],[-2.3,1.25]],arm:{UG:120,LP:300,TF:620,TS:150,TR:60,HS:80,HR:40,TOP:40},pen:720,rl:6,vmax:16,
+  ex:function(T,G,c,c2){box(T,-.3,.2,.9,1.25,-.9,-.5,c2);cyl(T,[-.6,.9,.6],'y',.3,.3,.15,12,c2);}},
+ {name:'T-90M',gun:'125 mm 2A46M-5',era:1,col:[.26,.32,.22],hl:3.45,hw:1.75,hy:1.3,th:.68,tx:0,gl:5.1,nw:6,drums:1,to:[[1.25,.55],[.7,1.25],[-.6,1.35],[-1.9,1.0]],arm:{UG:200,LP:280,TF:550,TS:140,TR:60,HS:80,HR:45,TOP:40},pen:620,rl:7,vmax:14,
+  ex:function(T,G,c,c2){cyl(T,[-.3,.68,.5],'y',.3,.28,.25,12,c2);box(T,-.45,-.15,.93,1.1,.42,.58,DKST);cyl(T,[-.15,1.0,.5],'x',.03,.03,.9,8,DARK);box(T,-2.3,-1.9,.1,.5,-.9,.9,c2);}},
+ {name:'CHALLENGER 2',gun:'120 mm L30A1',era:1,col:[.5,.47,.35],hl:4.1,hw:1.75,hy:1.55,th:.95,tx:-.1,gl:4.9,nw:6,drums:1,to:[[1.6,.75],[1.1,1.35],[-.8,1.5],[-2.4,1.3]],arm:{UG:120,LP:300,TF:650,TS:160,TR:60,HS:90,HR:40,TOP:40},pen:600,rl:7.5,vmax:13,
+  ex:function(T,G,c,c2){box(G,.35,1.0,.25,.5,-.22,.22,c2);cyl(T,[-.4,.95,.55],'y',.3,.3,.2,12,c2);}}];
+var SOV=[.25,.33,.2],GER=[.56,.49,.33],GRY=[.36,.38,.4],USA=[.3,.32,.2];
+// WWII-era tanks: approximate historical plate thickness (mm), gun penetration, reload and speed
+var WW2=[
+ {name:'IS-2',gun:'122 mm D-25T',col:SOV,hl:3.4,hw:1.54,hy:1.45,th:.75,ts:.85,tx:.5,gl:4.5,nw:6,ga:60,mb:1,to:[[1.15,.5],[.8,.95],[-.5,1.0],[-1.4,.7]],
+  arm:{UG:120,LP:100,TF:100,TS:90,TR:90,HS:90,HR:60,TOP:30},pen:205,v0:795,rl:20,vmax:10.3,trav:.24,acc:1.8},
+ {name:'IS-3',gun:'122 mm D-25T',col:SOV,hl:3.4,hw:1.6,hy:1.35,th:.62,ts:.5,tx:.3,gl:4.5,nw:6,ga:62,pike:1,to:[[1.25,.4],[.9,.95],[.2,1.2],[-.6,1.15],[-1.15,.8],[-1.4,.35]],
+  arm:{UG:110,LP:110,TF:220,TS:180,TR:110,HS:90,HR:60,TOP:30},pen:205,v0:795,rl:20,vmax:11.1,trav:.21,acc:1.9},
+ {name:'TIGER I',gun:'8.8 cm KwK 36',col:GRY,hl:3.15,hw:1.77,hy:1.6,th:.82,ts:1,tx:0,gl:4.3,nw:8,ga:10,mb:1,to:[[1.2,.55],[1.05,.95],[.5,1.12],[-.5,1.12],[-1.1,.85],[-1.45,.4]],
+  arm:{UG:100,LP:100,TF:120,TS:80,TR:80,HS:80,HR:80,TOP:25},pen:150,v0:780,rl:7,vmax:11,trav:.17,acc:1.8},
+ {name:'TIGER II',gun:'8.8 cm KwK 43',col:GER,hl:3.7,hw:1.88,hy:1.6,th:.88,ts:.85,tx:0,gl:6.0,nw:9,ga:50,mb:1,to:[[1.6,.5],[.7,1.05],[-1.2,1.05],[-2.3,.75]],
+  arm:{UG:150,LP:100,TF:180,TS:80,TR:80,HS:80,HR:80,TOP:40},pen:230,v0:1000,rl:8,vmax:10.5,trav:.33,acc:1.5},
+ {name:'PANTHER',gun:'7.5 cm KwK 42',col:GER,hl:3.45,hw:1.65,hy:1.55,th:.78,ts:.82,tx:.2,gl:5.0,nw:8,ga:55,mb:1,to:[[1.3,.55],[.9,.95],[-.8,1.0],[-1.5,.85]],
+  arm:{UG:80,LP:60,TF:100,TS:45,TR:45,HS:50,HR:40,TOP:16},pen:185,v0:935,rl:6,vmax:12.5,trav:.26,acc:2.2},
+ {name:'M26 PERSHING',gun:'90 mm M3',col:USA,hl:3.2,hw:1.75,hy:1.45,th:.8,ts:.8,tx:.1,gl:4.3,nw:6,ga:46,mb:1,to:[[1.25,.6],[.8,1.05],[-.7,1.1],[-1.9,.8]],
+  arm:{UG:102,LP:76,TF:102,TS:76,TR:76,HS:76,HR:51,TOP:22},pen:160,v0:810,rl:8,vmax:11,trav:.42,acc:2},
+ {name:'M4A3E8 SHERMAN',gun:'76 mm M1',col:USA,hl:2.95,hw:1.5,hy:1.75,th:.78,ts:.8,tx:.2,gl:3.7,nw:6,ga:47,mb:1,to:[[1.05,.55],[.7,.9],[-.5,.95],[-1.5,.7]],
+  arm:{UG:63,LP:51,TF:89,TS:63,TR:63,HS:38,HR:38,TOP:19},pen:125,v0:792,rl:5,vmax:11.5,trav:.42,acc:2.3},
+ {name:'T29 HEAVY',gun:'105 mm T5E1',col:USA,hl:3.8,hw:1.9,hy:1.5,th:1.0,ts:.82,tx:.1,gl:6.3,nw:8,ga:54,mb:1,to:[[1.7,.7],[1.1,1.3],[-1.2,1.35],[-2.6,1.0]],
+  arm:{UG:102,LP:70,TF:279,TS:158,TR:102,HS:76,HR:51,TOP:38},pen:210,v0:914,rl:11,vmax:9.7,trav:.31,acc:1.6},
+ {name:'T-34-85',gun:'85 mm ZiS-S-53',col:SOV,hl:3.05,hw:1.5,hy:1.4,th:.72,ts:.8,tx:.35,gl:4.2,nw:5,ga:60,to:[[1.2,.5],[.8,.95],[-.5,1.0],[-1.4,.7]],
+  arm:{UG:45,LP:45,TF:90,TS:75,TR:52,HS:55,HR:45,TOP:20},pen:140,v0:792,rl:6,vmax:14,trav:.38,acc:2.6}];
+WW2.forEach(function(w){w.sk=0;w.evac=0;w.disp=.002;});
+var ROSTER=[KT].concat(WW2,TYPES);
+// gun: calibre mm, length in calibres, brake (0 none,1 single,2 double-baffle), evacuator, separate-loading, round length m, autoloader
+var GD={'IS-2':[122,43,2,0,1,1.25],'IS-3':[122,43,2,0,1,1.25],'TIGER I':[88,56,2,0,0,.87],'TIGER II':[88,71,2,0,0,1.12],'PANTHER':[75,70,2,0,0,.89],
+  'M26 PERSHING':[90,53,2,0,0,.95],'M4A3E8 SHERMAN':[76,52,2,0,0,.87],'T29 HEAVY':[105,65,0,0,1,1.3],'T-34-85':[85,54.6,0,0,0,.93],
+  'M1A2 ABRAMS':[120,44,0,1,0,.98],'LEOPARD 2A7':[120,55,0,1,0,.98],'T-90M':[125,48,0,1,1,1.05,1],'CHALLENGER 2':[120,55,0,1,1,1.0]};
+// suspension: type (t torsion bar, v HVSS bogie, c Christie coil, h hydrogas), wheel radius m, interleaved, return rollers
+var SD={'IS-2':['t',.275,0,3],'IS-3':['t',.275,0,3],'TIGER I':['t',.4,1,0],'TIGER II':['t',.4,1,0],'PANTHER':['t',.43,1,0],'M26 PERSHING':['t',.33,0,5],
+  'M4A3E8 SHERMAN':['v',.26,0,3],'T29 HEAVY':['t',.33,0,7],'T-34-85':['c',.415,0,0],'M1A2 ABRAMS':['t',.32,0,2],'LEOPARD 2A7':['t',.35,0,4],
+  'T-90M':['t',.375,0,3],'CHALLENGER 2':['h',.4,0,4]};
+function cup(T,s,c2){cupola(T,-.35,s.th,.45,.3,c2);}
+function cupola(g,x,y,z,r,c2){
+  cyl(g,[x,y,z],'y',r,r*.93,.2,14,c2);cyl(g,[x,y+.2,z],'y',r*.72,r*.72,.04,12,c2);
+  if(!LOD)for(var k=0;k<6;k++)(function(k){withT(mul(trans(x,y+.08,z),rotY(k*60*D)),function(){box(g,r-.03,r+.05,0,.08,-.08,.08,DKST);});})(k);
+}
+function mgun(g,x,y,z){
+  cyl(g,[x,y,z],'y',.03,.03,.2,6,DKST);box(g,x-.25,x+.2,y+.2,y+.31,z-.05,z+.05,DKST);cyl(g,[x+.2,y+.26,z],'x',.02,.02,.75,6,DARK);
+  if(!LOD)box(g,x-.1,x+.06,y+.18,y+.31,z+.05,z+.19,DKST);
+}
+var NAT={'IS-2':'S','IS-3':'S','T-34-85':'S','TIGER I':'G','TIGER II':'G','PANTHER':'G','M26 PERSHING':'U','M4A3E8 SHERMAN':'U','T29 HEAVY':'U'};
+var CH={'IS-2':.2,'IS-3':.38,'T-34-85':.42,'TIGER I':.03,'TIGER II':.14,'PANTHER':.3,'M26 PERSHING':.16,'M4A3E8 SHERMAN':.14,'T29 HEAVY':.16};
+// curved surface between rings: no facet lines, only outline edges where it turns away from view
+function loftSmooth(g,rings,col){
+  var n=rings[0].length,m=rings.length,N=[],i,j,k;
+  for(i=0;i<m-1;i++){N[i]=[];for(j=0;j<n;j++){k=(j+1)%n;N[i][j]=poly(g,[rings[i][j],rings[i][k],rings[i+1][k],rings[i+1][j]],col,false);}}
+  for(i=0;i<m-1;i++)for(j=0;j<n;j++){var p=N[i][(j+n-1)%n],q=N[i][j];if(p&&q)smooth(g,rings[i][j],rings[i+1][j],p,q);}
+  for(i=1;i<m-1;i++)for(j=0;j<n;j++){k=(j+1)%n;if(N[i-1][j]&&N[i][j])smooth(g,rings[i][j],rings[i][k],N[i-1][j],N[i][j]);}
+  poly(g,rings[0],col);poly(g,rings[m-1],col);
+}
+function rrect(x,hh,hw){
+  var rad=Math.min(hh,hw)*.38,st=LOD?[0,90]:[0,30,60,90],o=[],c=[[hh-rad,hw-rad],[-(hh-rad),hw-rad],[-(hh-rad),-(hw-rad)],[hh-rad,-(hw-rad)]];
+  c.forEach(function(q,k){st.forEach(function(a){var t=(k*90+a)*D;o.push([x,q[0]+rad*Math.cos(t),q[1]+rad*Math.sin(t)]);});});return o;
+}
+// convex cast gun shield: a rounded pillow that bulges forward
+function mantShield(g,x0,depth,hh,hw,col){
+  loftSmooth(g,[rrect(x0,hh,hw),rrect(x0+depth*.55,hh*.93,hw*.95),rrect(x0+depth*.9,hh*.72,hw*.8),rrect(x0+depth,hh*.45,hw*.55)],col);
+}
+function collar(g,x0,len,r0,r1,col){lathe(g,[[x0,r0],[x0+len*.75,r0*.88],[x0+len,r1]],16,col);}
+function port(g,x,y,z,r){cyl(g,[x,y,z],'x',r,r,.012,10,BLK);}
+var EX={
+  'IS-2':function(T,G,c,c2,s){cup(T,s,c2);mantShield(G,.2,.42,.36,.62,c2);collar(G,.58,.45,.25,.16,c2);port(G,.59,.12,-.36,.035);},
+  'IS-3':function(T,G,c,c2,s){cyl(T,[-.3,s.th,0],'y',.42,.4,.1,14,c2);mantShield(G,.2,.36,.27,.4,c2);collar(G,.52,.4,.22,.15,c2);},
+  'TIGER I':function(T,G,c,c2,s){cupola(T,-.5,s.th,.55,.3,c2);box(G,.22,.46,-.42,.42,-.78,.78,c2);
+    lathe(G,[[.46,.27],[.6,.25],[.64,.2],[.9,.18],[.94,.13]],16,c2);port(G,.46,.12,-.5,.03);port(G,.46,.12,-.38,.03);port(G,.46,.0,.5,.035);
+    box(T,-2.0,-1.5,.15,.6,-.5,.5,c2);
+    if(!LOD)[1,-1].forEach(function(sd){for(var q=0;q<5;q++)box(T,.05+q*.17,.19+q*.17,.22,.52,sd*1.13,sd*1.2,DKST);});},
+  'TIGER II':function(T,G,c,c2,s){cup(T,s,c2);lathe(G,[[.28,.36],[.44,.36],[.52,.31,0],[.7,.24,0],[1.05,.16],[1.12,.14]],16,c2);port(G,.445,.2,-.2,.03);},
+  'PANTHER':function(T,G,c,c2,s){cup(T,s,c2);cyl(G,[.32,0,-.6],'z',.31,.31,1.2,20,c2);
+    collar(G,.58,.3,.2,.14,c2);port(G,.625,.06,-.36,.035);port(G,.625,.0,.36,.03);},
+  'M26 PERSHING':function(T,G,c,c2,s){cup(T,s,c2);mantShield(G,.18,.44,.37,.74,c2);collar(G,.58,.36,.27,.16,c2);port(G,.59,.1,.42,.035);port(G,.59,.0,-.4,.03);},
+  'M4A3E8 SHERMAN':function(T,G,c,c2,s){cup(T,s,c2);mantShield(G,.2,.36,.3,.55,c2);collar(G,.52,.3,.21,.13,c2);port(G,.535,.08,.3,.03);port(G,.535,.0,-.3,.028);},
+  'T29 HEAVY':function(T,G,c,c2,s){cup(T,s,c2);mantShield(G,.17,.5,.46,.86,c2);collar(G,.62,.45,.3,.19,c2);port(G,.635,.12,.5,.04);port(G,.635,.0,-.48,.035);
+    box(T,-.25,.25,.5,.8,1.2,1.62,c2);box(T,-.25,.25,.5,.8,-1.62,-1.2,c2);},
+  'T-34-85':function(T,G,c,c2,s){cup(T,s,c2);mantShield(G,.2,.38,.31,.5,c2);collar(G,.54,.45,.22,.14,c2);port(G,.555,.1,-.3,.03);}};
+ROSTER.forEach(function(r){var g=GD[r.name],u=SD[r.name];
+  if(g)r.g={cal:g[0],L:g[1],brk:g[2],evac:g[3],sep:g[4],rl:g[5],auto:g[6]};if(u)r.su={t:u[0],r:u[1],inter:u[2],rr:u[3]};if(EX[r.name])r.ex=EX[r.name];
+  r.nat=NAT[r.name]||'M';if(CH[r.name]!==undefined)r.ch=CH[r.name];
+  if(r.name==='TIGER I'){r.front=[[1.1,1.6],[1.04,1.28],[.14,1.2],[0,1.05]];r.mgp=[1.04,1.44];r.glp=[r.hl-1.07,1.45,.3];}});
+/* ===== Tiger I (mid-production), built to published dimensions rather than the generic template ===== */
+function ext(g,pr,z0,z1,col){loft(g,[pr.map(function(q){return[q[0],q[1],z0];}),pr.map(function(q){return[q[0],q[1],z1];})],col);}
+function trackLoop(g,p,z0,z1,sp){
+  var n=p.length,tot=0,i,seg=[];
+  for(i=0;i<n;i++){var q=p[(i+1)%n],d=Math.hypot(q[0]-p[i][0],q[1]-p[i][1]);seg.push(d);tot+=d;}
+  var N=Math.round(tot/sp),step=tot/N,o=[],acc=0,si=0,inn=[];
+  for(i=0;i<N;i++){var t=i*step;while(acc+seg[si]<t){acc+=seg[si];si++;}
+    var f=(t-acc)/seg[si],A=p[si],B=p[(si+1)%n];o.push([A[0]+(B[0]-A[0])*f,A[1]+(B[1]-A[1])*f]);}
+  for(i=0;i<N;i++){var a=o[(i+N-1)%N],b=o[(i+1)%N],tx=b[0]-a[0],ty=b[1]-a[1],L=Math.hypot(tx,ty),nx=ty/L,ny=-tx/L;
+    if(nx*o[i][0]+ny*(o[i][1]-.6)<0){nx=-nx;ny=-ny;}inn.push([o[i][0]-nx*.08,o[i][1]-ny*.08]);}
+  for(i=0;i<N;i++){var j=(i+1)%N,c=i%2?TRK1:TRK2,P=o[i],Q=o[j],C=inn[i],E=inn[j];
+    poly(g,[[P[0],P[1],z0],[Q[0],Q[1],z0],[Q[0],Q[1],z1],[P[0],P[1],z1]],c);
+    if(!LOD)poly(g,[[C[0],C[1],z0],[E[0],E[1],z0],[E[0],E[1],z1],[C[0],C[1],z1]],TRK1,false);
+    poly(g,[[P[0],P[1],z0],[Q[0],Q[1],z0],[E[0],E[1],z0],[C[0],C[1],z0]],TRK1,false);
+    poly(g,[[P[0],P[1],z1],[Q[0],Q[1],z1],[E[0],E[1],z1],[C[0],C[1],z1]],TRK1,false);}
+}
+function tigerBuild(s,dim){
+  var H=grp(),T=grp(),G=grp(),c=s.col,c2=[c[0]*.78,c[1]*.78,c[2]*.78],c3=[c[0]*.62,c[1]*.62,c[2]*.62],i,k,a;
+  // ---- hull: lower tub between the tracks, superstructure over them
+  ext(H,[[-2.75,.47],[2.23,.47],[3.15,.88],[3.0,1.2],[2.06,1.33],[-3.12,1.33],[-3.07,.75]],-.95,.95,c2);
+  ext(H,[[-3.1,1.3],[2.06,1.3],[1.99,1.76],[-3.17,1.76]],-1.57,1.57,c);
+  [1,-1].forEach(function(sd){
+    // side-plate horns with tow shackles, mudguards
+    box(H,2.95,3.3,.8,1.12,sd*.95,sd*1.02,c2);
+    if(!LOD){box(H,3.24,3.4,.86,1.02,sd*1.02,sd*1.1,STEEL);cyl(H,[3.3,.94,sd>0?.9:-1.12],'z',.035,.035,.22,8,DKST);}
+    poly(H,[[2.9,1.31,sd*1.0],[2.9,1.31,sd*1.86],[3.36,1.02,sd*1.86],[3.36,1.02,sd*1.0]],c2);
+    poly(H,[[2.06,1.32,sd*1.0],[2.06,1.32,sd*1.86],[2.9,1.31,sd*1.86],[2.9,1.31,sd*1.0]],c2);
+    var ns=LOD?1:4,ls=5.16/ns;for(i=0;i<ns;i++)box(H,2.06-(i+1)*ls+(LOD?0:.02),2.06-i*ls,1.27,1.3,sd*1.57,sd*1.86,c2);
+    poly(H,[[-3.1,1.3,sd*1.02],[-3.1,1.3,sd*1.86],[-3.28,1.02,sd*1.86],[-3.28,1.02,sd*1.02]],c2);
+    // tracks: 725 mm wide, top run resting on the wheels
+    var zc=sd*1.42,p=[[-1.95,0],[1.95,0]];
+    for(a=-60;a<=90;a+=15)p.push([2.72+.45*Math.cos(a*D),.8+.45*Math.sin(a*D)]);
+    p.push([1.95,.99],[.6,.95],[-.6,.95],[-1.9,.97]);
+    for(a=90;a<=250;a+=20)p.push([-2.78+.32*Math.cos(a*D),.72+.32*Math.sin(a*D)]);
+    trackLoop(H,p,zc-.36,zc+.36,LOD?.5:.13);
+    // eight torsion-bar axles of interleaved 800 mm wheels
+    for(i=0;i<8;i++){var wx=1.8-i*.514,offs=i%2?[.09,-.09]:[.27,-.27];
+      offs.forEach(function(of,q){if(LOD&&q)return;tigerWheel(H,wx,.46,.4,zc+sd*of,sd,c2);});}
+    // drive sprocket (front) and idler (rear)
+    withT(mul(trans(2.72,.8,zc),rotY(-Math.PI/2)),function(){
+      lathe(H,[[sd*.3,0],[sd*.3,.12],[sd*.22,.2],[sd*.22,.37],[sd*.26,.37],[sd*.26,.4],[sd*.14,.4],[sd*.14,.2]],20,c2,true);
+      lathe(H,[[-sd*.14,.2],[-sd*.14,.4],[-sd*.26,.4],[-sd*.26,0]],20,c2,true);});
+    if(!LOD)for(k=0;k<20;k++)(function(k){withT(mul(trans(2.72,.8,zc),rotZ(k*18*D)),function(){
+      box(H,.39,.44,-.03,.03,sd*.14,sd*.26,c3);box(H,.39,.44,-.03,.03,-sd*.26,-sd*.14,c3);});})(k);
+    tigerWheel(H,-2.78,.72,.3,zc+sd*.2,sd,c2);if(!LOD)tigerWheel(H,-2.78,.72,.3,zc-sd*.2,sd,c2);
+    // tow cable along the hull roof edge
+    if(!LOD){cyl(H,[-2.5,1.79,sd*1.4],'x',.022,.022,4.2,6,DKST);cyl(H,[1.7,1.76,sd*1.4],'y',.06,.06,.03,8,DKST);cyl(H,[-2.5,1.76,sd*1.4],'y',.06,.06,.03,8,DKST);
+      // radiator grilles
+      [[-1.32,-1.95],[-2.05,-2.95]].forEach(function(r){box(H,r[1],r[0],1.76,1.79,sd*.58,sd*1.46,c3);
+        for(k=0;k<7;k++)box(H,r[1]+.04,r[0]-.04,1.79,1.805,sd*(.64+k*.12),sd*(.7+k*.12),c2);});
+      // headlight on its post
+      cyl(H,[1.72,1.76,sd*1.25],'y',.025,.025,.12,6,DKST);cyl(H,[1.66,1.93,sd*1.25],'x',.085,.07,.13,12,c2);}
+    // exhaust muffler with its sheet-metal shield
+    cyl(H,[-3.34,.98,sd*.42],'y',.12,.12,.74,12,c3);
+    if(!LOD){cyl(H,[-3.34,1.72,sd*.42],'y',.07,.07,.08,8,DKST);cyl(H,[-3.3,.9,sd*.42],'x',.06,.06,.2,8,DKST);
+      box(H,-3.52,-3.49,1.0,1.7,sd*.42-.2,sd*.42+.2,c2);box(H,-3.52,-3.34,1.0,1.7,sd*.42+.2,sd*.42+.23,c2);box(H,-3.52,-3.34,1.0,1.7,sd*.42-.23,sd*.42-.2,c2);}
+    // driver's and radio operator's hatches
+    cyl(H,[1.5,1.76,sd*.74],'y',.25,.25,.04,16,c2);
+    if(!LOD){box(H,1.42,1.58,1.8,1.86,sd*.74-.05,sd*.74+.05,c3);}
+  });
+  // driver's visor (left) and ball-mounted hull MG (right)
+  box(H,2.03,2.1,1.47,1.62,-.82,-.42,c2);box(H,2.1,2.105,1.52,1.57,-.74,-.5,BLK);
+  if(!LOD){port(H,2.04,1.69,-.68,.025);port(H,2.04,1.69,-.56,.025);}
+  withT(trans(2.05,1.5,.62),function(){lathe(H,[[-.02,.2],[.03,.2],[.06,.15,0],[.12,.11,0],[.15,0,0]],14,c2);});
+  cyl(H,[2.18,1.5,.62],'x',.02,.02,.28,6,DARK);
+  // engine deck: central hatch with its fan covers, convoy fittings on the rear plate
+  box(H,-2.7,-1.35,1.76,1.8,-.5,.5,c2);
+  if(!LOD){cyl(H,[-1.75,1.8,0],'y',.2,.2,.05,14,c3);cyl(H,[-2.35,1.8,0],'y',.2,.2,.05,14,c3);box(H,-2.72,-1.33,1.8,1.815,-.03,.03,c3);
+    cyl(H,[1.62,1.76,0],'y',.12,.1,.06,10,c3);
+    box(H,-.3,1.3,1.76,1.785,1.3,1.34,DKST);box(H,-.9,.9,1.76,1.785,-1.36,-1.32,DKST);box(H,.2,.75,1.76,1.8,-1.5,-1.4,DKST);
+    cyl(H,[-3.2,1.2,.75],'z',.07,.07,.5,10,c3);box(H,-3.22,-3.14,.78,.92,-.12,.12,c3);
+    cyl(H,[-1.25,1.76,1.42],'y',.03,.03,.1,6,DKST);cyl(H,[-1.25,1.86,1.42],'y',.01,.01,1.9,5,DARK);}
+  if(dim)dimline(H,[-3.15,0,2.55],[5.29,0,2.55],[0,0,-.35]);
+  // ---- turret: one 80 mm plate bent into a horseshoe, vertical walls
+  var half=[[1.0,.7],[.75,.92],[.3,1.06],[-.3,1.08],[-.84,.935],[-1.235,.54],[-1.38,.1]];
+  function ring(y){return half.map(function(q){return[q[0],y,q[1]];}).concat(half.slice().reverse().map(function(q){return[q[0],y,-q[1]];}));}
+  loftSmooth(T,[ring(0),ring(.8)],c);
+  for(i=0;i<2;i++)[1,-1].forEach(function(sd){hard(T,[1.0,0,sd*.7],[1.0,.8,sd*.7]);});
+  cyl(T,[0,-.06,0],'y',1.0,1.0,.06,24,c2);
+  // commander's cupola (left rear) with periscope housings, loader's hatch (right), ventilator
+  cyl(T,[-.4,.8,-.55],'y',.34,.32,.17,18,c2);cyl(T,[-.4,.97,-.55],'y',.25,.25,.04,14,c3);
+  if(!LOD)for(k=0;k<7;k++)(function(k){withT(mul(trans(-.4,.86,-.55),rotY((k*51.4+10)*D)),function(){box(T,.26,.37,0,.09,-.09,.09,c3);});})(k);
+  box(T,-.05,.42,.8,.835,.28,.76,c2);
+  if(!LOD){box(T,.3,.38,.835,.87,.46,.58,c3);cyl(T,[.0,.8,-.02],'y',.17,.15,.06,12,c3);cyl(T,[.62,.8,-.3],'y',.1,.1,.04,10,c3);
+    // escape hatch (right rear) and pistol port (left rear)
+    withT(mul(trans(-.84,.42,.935),rotY(-120*D)),function(){cyl(T,[0,0,0],'x',.27,.27,.05,16,c2);cyl(T,[.05,0,0],'x',.05,.05,.03,8,c3);});
+    withT(mul(trans(-.84,.45,-.935),rotY(120*D)),function(){cyl(T,[0,0,0],'x',.09,.07,.06,10,c2);});
+    // spare track links: five on the left wall, two on the right
+    for(k=0;k<5;k++)box(T,-.32+k*.17,-.18+k*.17,.2,.56,-1.15,-1.07,DKST);
+    for(k=0;k<2;k++)box(T,.02+k*.17,.16+k*.17,.2,.56,1.07,1.15,DKST);}
+  // stowage bin on the turret rear: sheet-metal box curved to follow the turret, two lids
+  function binRing(y,sc){var o=[[-1.199,.562]],st=LOD?17.33:8.667,a;
+    for(a=154;a<=206.01;a+=st)o.push([-.3+1.55*Math.cos(a*D),1.55*Math.sin(a*D)]);o.push([-1.199,-.562]);
+    return o.map(function(q){return[-1.5+(q[0]+1.5)*sc,y,q[1]*sc];});}
+  loftSmooth(T,[binRing(.2,.95),binRing(.27,1),binRing(.64,1)],c2);
+  if(!LOD){
+    [1,-1].forEach(function(sd){var cz=1.55*Math.sin(154*D)*sd,cx=-.3+1.55*Math.cos(154*D);
+      hard(T,[cx,.27,cz],[cx,.64,cz]);                                   // corner crease
+      box(T,-1.875,-1.8,.54,.67,sd*.33-.045,sd*.33+.045,c3);             // lid hasp
+      cyl(T,[-1.36,.672,sd*.34-.11],'z',.016,.016,.22,6,c3);             // lid hinge
+      box(T,-1.52,-1.3,.12,.2,sd*.42-.03,sd*.42+.03,c3);});              // support bracket
+    loft(T,[binRing(.64,1.02),binRing(.665,1.02)],c2);                   // lids, slightly overhanging
+    hard(T,[-1.25,.666,0],[-1.865,.666,0]);hard(T,[-1.36,.666,-.6],[-1.36,.666,.6]);
+  }
+  // ---- gun: flat mantlet with its cast boss, stepped sleeve, 8.8 cm KwK 36 L/56
+  var mz=4.29;
+  box(G,.19,.36,-.34,.36,-.72,.72,c2);
+  lathe(G,[[.36,.3],[.43,.28],[.5,.21]],18,c2);
+  if(!LOD){box(G,.36,.41,.02,.27,-.58,-.2,c2);port(G,.41,.14,-.44,.028);port(G,.41,.14,-.33,.028);port(G,.36,.02,.42,.04);cyl(G,[.36,.02,.42],'x',.018,.018,.12,6,DARK);}
+  lathe(G,[[.5,.15],[.6,.14],[.62,.125],[1.35,.12],[1.37,.1],[2.4,.09],[2.42,.08],[mz-.46,.068]],18,c);
+  lathe(G,[[mz-.46,.085],[mz-.42,.15],[mz-.27,.15],[mz-.23,.09],[mz-.17,.125],[mz-.03,.125],[mz,.08]],16,c3);
+  cyl(G,[mz,0,0],'x',.045,.045,.004,10,BLK);
+  if(!LOD){[1,-1].forEach(function(sd){box(G,mz-.39,mz-.3,-.07,.07,sd*.125,sd*.152,BLK);box(G,mz-.14,mz-.06,-.06,.06,sd*.105,sd*.127,BLK);});}
+  s.tx=.15;s.ty=s.hy=1.76;s.gx=.85;s.gy=.42;s.mz=mz;s.gl=mz-.35;s.th=.8;s.top=2.95;s.hw=1.85;s.sight=[.95,1.0,-.3];s.to=half;s.glp=[2.03,1.6,.3];
+  s.lp={'HULL SIDE':[0,1.55,1.57],'HULL REAR':[-3.14,1.55,-.5],'LOWER FRONT PLATE':[3.07,1.04,0]};
+  s.xspec=[['WEIGHT','57 T'],['CREW','5'],['ENGINE','MAYBACH HL230, 700 PS'],['ROAD WHEELS','800 MM, INTERLEAVED']];s.note='(mid-production, built to published dimensions)';
+  s.v0=s.v0||780;s.trav=s.trav||.17;s.acc=s.acc||1.8;s.disp=s.disp||.002;
+  s.xlab=[{g:0,p:[2.2,1.5,.62],t:'BALL-MOUNTED HULL MG',w:1},{g:0,p:[2.1,1.55,-.62],t:'DRIVER\'S VISOR',w:1},{g:1,p:[-.4,1.0,-.55],t:'COMMANDER\'S CUPOLA',w:1},
+    {g:1,p:[-1.85,.45,0],t:'TURRET STOWAGE BIN',w:1},{g:0,p:[-3.46,1.4,.42],t:'EXHAUST MUFFLERS',w:1},{g:0,p:[2.72,.8,1.72],t:'DRIVE SPROCKET',w:1}];
+  return[H,T,G].map(fin);
+}
+function tigerWheel(g,x,y,r,z,sd,col){
+  withT(mul(trans(x,y,z),rotY(-Math.PI/2)),function(){
+    if(LOD){lathe(g,[[-.045,r],[.045,r]],20,col);return;}
+    lathe(g,[[sd*.07,0],[sd*.07,r*.2],[sd*.04,r*.3],[sd*.04,r*.82],[sd*.05,r*.86],[sd*.05,r],[-sd*.05,r],[-sd*.05,0]],20,col,true);
+    for(var k=0;k<6;k++)(function(k){withT(rotX(k*60*D),function(){cyl(g,[sd*.07,r*.15,0],'x',.014,.014,sd*.015,5,STEEL);});})(k);
+  });
+}
+/* ===== T-34-85 (1944 production), built to published dimensions ===== */
+function t34Wheel(g,x,y,r,z,sd,col){
+  withT(mul(trans(x,y,z),rotY(-Math.PI/2)),function(){
+    if(LOD){lathe(g,[[-.17,r],[.17,r]],20,col);return;}
+    // twin rubber-tyred discs with the guide-horn gap between them
+    lathe(g,[[sd*.2,0],[sd*.2,r*.22],[sd*.13,r*.3],[sd*.13,r*.8],[sd*.18,r*.84],[sd*.18,r],[sd*.035,r],[sd*.035,r*.82],[-sd*.035,r*.82],[-sd*.035,r],[-sd*.18,r],[-sd*.18,0]],20,col,true);
+    for(var k=0;k<6;k++)(function(k){withT(rotX(k*60*D),function(){cyl(g,[sd*.2,r*.14,0],'x',.014,.014,sd*.015,5,STEEL);});
+      withT(rotX((k*60+30)*D),function(){cyl(g,[sd*.131,r*.55,0],'x',.035,.035,sd*.006,8,BLK);});})(k);
+  });
+}
+function t34Build(s,dim){
+  var H=grp(),T=grp(),G=grp(),c=s.col,c2=[c[0]*.8,c[1]*.8,c[2]*.8],c3=[c[0]*.6,c[1]*.6,c[2]*.6],i,k,a;
+  // ---- hull: sloped on every face. Glacis 60 deg, sides 40 deg, rear 48 deg
+  ext(H,[[-2.72,.42],[2.5,.42],[3.04,.95],[-3.04,.86]],-.9,.9,c2);
+  loft(H,[ring6(-3.05,.84,.85,.88,1.49,1.46),ring6(-2.38,1.0,1.01,1.45,1.49,1.11),ring6(2.18,1.0,1.01,1.45,1.49,1.11),ring6(3.05,.94,.95,.98,1.49,1.48)],c);
+  [1,-1].forEach(function(sd){
+    box(H,2.18,3.0,.985,1.01,sd*.95,sd*1.52,c2);poly(H,[[3.0,1.0,sd*.95],[3.0,1.0,sd*1.52],[3.2,.78,sd*1.52],[3.2,.78,sd*.95]],c2);
+    box(H,-3.05,-2.38,.985,1.01,sd*.95,sd*1.52,c2);poly(H,[[-3.05,1.0,sd*.95],[-3.05,1.0,sd*1.52],[-3.2,.8,sd*1.52],[-3.2,.8,sd*.95]],c2);
+    // 500 mm track, top run resting on the wheels; idler at the front, drive sprocket at the rear
+    var zc=sd*1.225,p=[[-1.9,0],[1.95,0]];
+    for(a=-70;a<=90;a+=20)p.push([2.72+.3*Math.cos(a*D),.62+.3*Math.sin(a*D)]);
+    p.push([2.0,.97],[.5,.95],[-.9,.95],[-1.9,.97]);
+    for(a=90;a<=250;a+=20)p.push([-2.72+.36*Math.cos(a*D),.62+.36*Math.sin(a*D)]);
+    trackLoop(H,p,zc-.25,zc+.25,LOD?.5:.172);
+    [1.95,1.02,.02,-.93,-1.86].forEach(function(wx){t34Wheel(H,wx,.455,.415,zc,sd,c2);});
+    t34Wheel(H,2.72,.62,.25,zc,sd,c2);
+    withT(mul(trans(-2.72,.62,zc),rotY(-Math.PI/2)),function(){
+      lathe(H,[[sd*.2,0],[sd*.2,.14],[sd*.15,.2],[sd*.15,.31],[sd*.04,.31],[sd*.04,.12],[-sd*.04,.12],[-sd*.04,.31],[-sd*.15,.31],[-sd*.15,0]],18,c2,true);});
+    if(!LOD)for(k=0;k<6;k++)(function(k){withT(mul(trans(-2.72,.62,zc),rotZ(k*60*D)),function(){cyl(H,[.27,0,-.04],'z',.035,.035,.08,6,c3);});})(k);
+    // external fuel drums: two on the right, one on the left
+    (sd>0?[-1.0,-1.95]:[-1.95]).forEach(function(x0){cyl(H,[x0,1.42,sd*1.38],'x',.19,.19,.85,14,c2);
+      if(!LOD){lathe2(H,x0+.18);lathe2(H,x0+.67);}
+      function lathe2(g,x){withT(trans(x,1.42,sd*1.38),function(){lathe(g,[[-.02,.2],[.02,.2]],14,c3);});}});
+    if(!LOD){box(H,.25,1.25,1.3,1.33,sd*1.26,sd*1.29,DKST);box(H,.25,.29,1.24,1.33,sd*1.26,sd*1.29,DKST);box(H,1.21,1.25,1.24,1.33,sd*1.26,sd*1.29,DKST);
+      // engine air-intake louvres
+      box(H,-1.9,-.8,1.45,1.48,sd*.5,sd*1.06,c3);for(k=0;k<8;k++)box(H,-1.86+k*.13,-1.8+k*.13,1.48,1.495,sd*.54,sd*1.02,c2);}
+  });
+  // glacis fittings: driver's hatch (left), ball-mounted DT machine gun (right), spare links, tow hooks
+  withT(mul(trans(2.615,1.205,0),rotZ(60*D)),function(){
+    box(H,0,.06,-.22,.3,-.8,-.2,c2);
+    if(!LOD){box(H,.06,.11,.2,.28,-.72,-.56,c3);box(H,.06,.11,.2,.28,-.44,-.28,c3);
+      for(k=0;k<4;k++)box(H,0,.05,-.45,-.31,-.3+k*.3,-.06+k*.3,DKST);
+      box(H,0,.08,-.47,-.36,1.1,1.2,STEEL);box(H,0,.08,-.47,-.36,-1.2,-1.1,STEEL);}
+    withT(trans(0,.06,.52),function(){lathe(H,[[0,.2],[.05,.19,0],[.13,.12,0],[.17,.05]],14,c2);withT(rotZ(-60*D),function(){cyl(H,[.1,0,0],'x',.02,.02,.34,6,DARK);});});
+  });
+  if(!LOD){cyl(H,[1.95,1.32,-1.3],'x',.07,.06,.12,10,c2);cyl(H,[1.98,1.24,-1.3],'y',.02,.02,.08,6,DKST);}
+  // rear plate: round transmission hatch, exhausts in armoured cowls
+  withT(mul(trans(-2.715,1.165,0),rotZ(130.9*D)),function(){
+    cyl(H,[0,0,0],'x',.33,.33,.04,18,c2);cyl(H,[.04,0,0],'x',.06,.06,.03,8,c3);
+    [.62,-.62].forEach(function(z){cyl(H,[0,-.05,z],'x',.075,.075,.24,10,c3);if(!LOD)box(H,0,.09,-.2,.1,z-.15,z+.15,c2);});
+  });
+  box(H,-2.3,-.75,1.45,1.5,-.42,.42,c2);
+  if(!LOD){box(H,-2.32,-.73,1.5,1.51,-.03,.03,c3);box(H,-2.36,-1.98,1.45,1.47,-1.0,1.0,c3);cyl(H,[-1.5,1.5,0],'y',.1,.08,.05,10,c3);}
+  if(dim)dimline(H,[-3.05,0,2.2],[5.1,0,2.2],[0,0,-.35]);
+  // ---- turret: cast, three-man, sides leaning in
+  var half=[[1.12,.42],[.85,.78],[.2,.95],[-.6,.93],[-1.15,.7],[-1.38,.28]];
+  function ring(y,sx,sz){return half.map(function(q){return[q[0]*sx,y,q[1]*sz];}).concat(half.slice().reverse().map(function(q){return[q[0]*sx,y,-q[1]*sz];}));}
+  loftSmooth(T,[ring(0,1,1),ring(.28,1.02,1.04),ring(.8,.9,.8)],c);
+  cyl(T,[0,-.06,0],'y',.88,.88,.06,24,c2);
+  // commander's cupola (left) with vision blocks, loader's hatch (right), twin ventilator domes, periscopes
+  cyl(T,[-.5,.8,-.4],'y',.31,.29,.22,18,c2);cyl(T,[-.5,1.02,-.4],'y',.24,.24,.035,14,c3);
+  if(!LOD){for(k=0;k<5;k++)(function(k){withT(mul(trans(-.5,.88,-.4),rotY((k*72+20)*D)),function(){box(T,.25,.33,0,.08,-.08,.08,c3);});})(k);
+    hard(T,[-.74,1.056,-.4],[-.26,1.056,-.4]);}
+  cyl(T,[-.45,.8,.4],'y',.25,.25,.035,14,c2);
+  [.2,-.2].forEach(function(z){withT(mul(trans(-1.0,.8,z),rotZ(Math.PI/2)),function(){lathe(T,[[0,.16],[.05,.15,0],[.1,.09,0],[.12,0,0]],12,c2);});});
+  if(!LOD){box(T,.28,.42,.8,.9,-.46,-.32,c3);box(T,.28,.42,.8,.9,.32,.46,c3);
+    [1,-1].forEach(function(sd){box(T,-.55,.1,.44,.47,sd*.97,sd*1.0,DKST);box(T,-.55,-.52,.4,.47,sd*.93,sd*1.0,DKST);box(T,.07,.1,.4,.47,sd*.93,sd*1.0,DKST);
+      cyl(T,[-.85,.36,sd>0?.82:-.88],'z',.06,.05,.06,8,c3);});}
+  // ---- gun: rounded cast mantlet, long sleeve, 85 mm ZiS-S-53 with no muzzle brake
+  var mz=3.25;
+  cyl(G,[.22,0,-.43],'z',.29,.29,.86,18,c2);
+  lathe(G,[[.45,.2],[.85,.15],[.9,.115]],16,c2);
+  if(!LOD){port(G,.495,.1,-.25,.03);port(G,.508,.0,.27,.03);cyl(G,[.5,0,.27],'x',.016,.016,.1,6,DARK);}
+  lathe(G,[[.9,.085],[1.6,.08],[1.62,.07],[mz,.058]],16,c);
+  cyl(G,[mz,0,0],'x',.043,.043,.004,10,BLK);
+  s.tx=.9;s.ty=s.hy=1.45;s.gx=.95;s.gy=.36;s.mz=mz;s.gl=mz-.35;s.th=.8;s.top=2.5;s.hw=1.5;s.sight=[1.0,.98,-.3];s.to=half;
+  s.arm={UG:45,LP:45,TF:90,TS:75,TR:52,HS:45,HR:45,TOP:20};
+  s.lp={'UPPER GLACIS':[2.6,1.215,.25],'HULL SIDE':[0,1.2,1.32],'HULL REAR':[-2.72,1.17,-.3],'LOWER FRONT PLATE':[2.78,.69,0]};
+  s.xspec=[['WEIGHT','32 T'],['CREW','5'],['ENGINE','V-2-34 DIESEL, 500 HP'],['ROAD WHEELS','830 MM, CHRISTIE']];s.note='(1944 production, built to published dimensions)';
+  s.xlab=[{g:0,p:[2.5,1.33,-.5],t:'DRIVER\'S HATCH',w:1},{g:0,p:[2.75,1.35,.52],t:'BALL-MOUNTED DT MG',w:1},{g:0,p:[-1.5,1.6,1.38],t:'EXTERNAL FUEL DRUMS',w:1},
+    {g:1,p:[-.5,1.05,-.4],t:'COMMANDER\'S CUPOLA',w:1},{g:0,p:[-2.9,1.2,.62],t:'EXHAUSTS',w:1},{g:0,p:[-2.72,.62,1.45],t:'DRIVE SPROCKET (REAR)',w:1}];
+  return[H,T,G].map(fin);
+}
+function mbt(s,dim){
+  if(s.name==='TIGER I')return tigerBuild(s,dim);
+  if(s.name==='T-34-85')return t34Build(s,dim);
+  if(s.g)s.gl=Math.round((s.g.cal*s.g.L/1000-.8)*100)/100;
+  var H=grp(),T=grp(),Gn=grp(),c=s.col,c2=[c[0]*.76,c[1]*.76,c[2]*.76],hl=s.hl,hw=s.hw,hy=s.hy,i,k;
+  var nat=s.nat||'M',mod=nat==='M',ch=s.ch===undefined?.22:s.ch,ym=hy-ch*.9,wt=hw-ch,wn=s.pike?hw*.22:hw;
+  loft(H,[ring4(-hl+.1,.8,1.1,hw-.68),ring4(-hl+.4,.42,1.1,hw-.68),ring4(hl-1.1,.42,1.1,hw-.68),ring4(hl-.1,.95,1.1,hw-.68)],c2);
+  var g0=s.ga!==undefined?Math.max(.08,(hy-1.14)*Math.tan(s.ga*D)):1.9;
+  // upper hull: chamfered section, optional stepped front
+  var fr=s.front||[[g0,hy],[0,1.14]],rings=[ring6(-hl,1.02,Math.min(ym,hy-.16),hy-.1,hw,wt),ring6(-hl+.45,1.02,ym,hy,hw,wt)];
+  fr.forEach(function(f,q){var y=f[1];
+    rings.push(q===fr.length-1?ring6(hl,.98,Math.min(ym,y-.04),y,wn,s.pike?wn:Math.max(wn-ch*.5,.1)):ring6(hl-f[0],1.02,Math.min(ym,y-.04),y,hw,wt));});
+  loft(H,rings,c);
+  // engine deck, exhausts, hatches
+  box(H,-hl+.5,-hl+1.5,hy,hy+.04,-wt+.3,wt-.3,DKST);
+  if(!LOD)for(i=0;i<6;i++)box(H,-hl+.56+i*.15,-hl+.63+i*.15,hy+.04,hy+.075,-wt+.36,wt-.36,c2);
+  if(nat==='G')[.5,-.5].forEach(function(z){cyl(H,[-hl-.13,1.1,z],'y',.09,.09,.72,10,DKST);box(H,-hl-.26,-hl,1.0,1.12,z-.16,z+.16,c2);});
+  else if(mod)box(H,-hl-.05,-hl+.02,1.1,hy-.22,-hw+.5,hw-.5,DKST);
+  else if(nat==='S'){cyl(H,[-hl-.16,1.28,.62],'x',.07,.07,.2,8,DKST);cyl(H,[-hl-.16,1.28,-.62],'x',.07,.07,.2,8,DKST);}
+  var dxh=hl-fr[0][0]-.5;
+  cyl(H,[dxh,hy,mod?0:.48],'y',.25,.25,.035,12,c2);if(!mod)cyl(H,[dxh,hy,-.48],'y',.25,.25,.035,12,c2);
+  if(!LOD){
+    var gxf=function(f){return hl-fr[0][0]*f;},gyf=function(f){return 1.14+(fr[0][1]-1.14)*f;};
+    [1,-1].forEach(function(sd){cyl(H,[gxf(.35),gyf(.35)+.03,sd*hw*.6],'x',.08,.08,.1,10,STEEL);
+      box(H,hl-.14,hl+.05,.72,.86,sd*.5-.05,sd*.5+.05,STEEL);});
+    if(nat==='G'||nat==='U'||s.name==='T-34-85'){var mp=s.mgp?[hl-s.mgp[0],s.mgp[1]]:[gxf(.55),gyf(.55)];
+      withT(trans(mp[0],mp[1],-.5),function(){lathe(H,[[-.12,0],[-.08,.09,0],[0,.12,0],[.08,.09,0],[.12,0]],10,c2);});
+      cyl(H,[mp[0]+.05,mp[1]+.02,-.5],'x',.02,.02,.3,6,DARK);}
+  }
+  [1,-1].forEach(function(sd){var zc=sd*(hw-.34),w;
+    if(s.sk!==0){var np=LOD?1:5,x0s=-hl+.3,ls=(2*hl-1.5)/np;for(w=0;w<np;w++)box(H,x0s+w*ls,x0s+(w+1)*ls-(LOD?0:.03),.7,1.04,sd*(hw-.03),sd*(hw+.03),c);}
+    poly(H,[[hl-.15,1.02,sd*(hw-.66)],[hl-.15,1.02,sd*hw],[hl+.1,.82,sd*hw],[hl+.1,.82,sd*(hw-.66)]],c2);
+    poly(H,[[-hl,1.02,sd*(hw-.66)],[-hl,1.02,sd*hw],[-hl-.12,.86,sd*hw],[-hl-.12,.86,sd*(hw-.66)]],c2);
+    track(H,zc-.3,zc+.3,-hl+.55,hl-.6,.62,.4);
+    var su=s.su||{t:'t',r:.36},wr=su.r,wy=wr+.06,x0=-hl+1.35,x1=hl-1.45;
+    if(su.t==='v'){for(w=0;w<3;w++){var xb=x0+(x1-x0)*(w+.5)/3;wheelAny(H,xb-.4,wy,wr,zc,c2);wheelAny(H,xb+.4,wy,wr,zc,c2);
+      box(H,xb-.13,xb+.13,wy-.05,.92,zc-.2,zc+.2,c2);cyl(H,[xb,.9,zc-.2],'z',.11,.11,.4,10,c2);}}
+    else{for(w=0;w<s.nw;w++)wheelAny(H,x0+(x1-x0)*w/(s.nw-1),wy,wr,zc+(su.inter?(w%2?.1:-.1):0),c2);
+      for(w=0;w<(su.rr||0);w++)cyl(H,[x0+(x1-x0)*(w+.5)/su.rr,.86,zc-.2],'z',.11,.11,.4,10,c2);}
+    wheelAny(H,hl-.6,.62,.3,zc,c2);wheelAny(H,-hl+.55,.62,.3,zc,c2);
+    if(!LOD){var xd=(nat==='G'||nat==='U')?hl-.6:-hl+.55;
+      for(k=0;k<12;k++)(function(k){withT(mul(trans(xd,.62,zc),rotZ(k*30*D)),function(){box(H,.28,.37,-.03,.03,-.28,.28,c2);});})(k);
+      box(H,-hl+.55,-hl+1.35,hy,hy+.13,sd*(wt-.32),sd*(wt-.04),c2);}
+    if(s.drums)cyl(H,[-hl-.28,hy-.2,sd>0?.15:-1.25],'z',.27,.27,1.1,12,c);
+  });
+  // turret: three sections so cast turrets read as rounded
+  function tr(y,sx,sz){var a=s.to.map(function(p){return[p[0]*sx,y,p[1]*sz];}),b=s.to.slice().reverse().map(function(p){return[p[0]*sx,y,-p[1]*sz];});return a.concat(b);}
+  var ts=s.ts||.8,cast=!mod&&nat!=='G',rr=Math.min(wt-.05,1.1),tR=s.to[s.to.length-1];
+  loft(T,[tr(0,1,1),tr(s.th*.45,cast?1:.964,cast?Math.min(1.04,1+(1-ts)*.2):1-(1-ts)*.45),tr(s.th,.92,ts)],c);
+  cyl(T,[0,-.07,0],'y',rr,rr,.07,20,c2);
+  if(s.ex)s.ex(T,Gn,c,c2,s);else cup(T,s,c2);
+  cyl(T,[-.3,s.th,-.42],'y',.23,.23,.03,10,c2);
+  if(nat==='U'||mod||(nat==='S'&&s.name!=='T-34-85'))mgun(T,-.35,s.th+(s.name==='IS-3'?.1:.2),s.name==='IS-3'?0:.45);
+  if(!LOD){cyl(T,[tR[0]*.8,s.th,-tR[1]*.6],'y',.012,.012,1.3,5,DARK);
+    withT(mul(trans(tR[0]*.55,s.th,0),rotZ(Math.PI/2)),function(){lathe(T,[[0,.16],[.05,.14,0],[.08,0,0]],10,c2);});
+    if(mod)[1,-1].forEach(function(sd){for(var q=0;q<4;q++)cyl(T,[s.to[1][0]-.25-q*.13,s.th*.55,sd*(s.to[1][1]+.04)],'x',.045,.045,.2,8,DKST);});}
+  // gun: stepped, tapered barrel
+  var gd=s.g,rbo=gd?gd.cal*.0009:.09,gl=s.gl,gx0=.35;
+  if(mod){box(Gn,-.2,.35,-.25,.25,-.4,.4,c2);collar(Gn,.33,.3,rbo*2.6,rbo*1.6,c2);}
+  lathe(Gn,[[gx0,rbo*1.5],[gx0+gl*.18,rbo*1.45],[gx0+gl*.2,rbo*1.2],[gx0+gl*.6,rbo*1.1],[gx0+gl*.62,rbo],[gx0+gl,rbo*.95]],12,c2);
+  cyl(Gn,[gx0+gl,0,0],'x',rbo*.55,rbo*.55,.004,8,BLK);
+  if(gd?gd.evac:s.evac!==0)lathe(Gn,[[gx0+gl*.42-.1,rbo*1.15],[gx0+gl*.42,rbo*1.75],[gx0+gl*.42+.75,rbo*1.75],[gx0+gl*.42+.85,rbo*1.12]],12,c2);
+  if(gd&&gd.brk){cyl(Gn,[gl-.2,0,0],'x',rbo*2,rbo*2,.16,12,c2);cyl(Gn,[gl+.12,0,0],'x',rbo*1.8,rbo*1.8,.16,12,c2);
+    if(!LOD){box(Gn,gl-.16,gl-.08,-rbo*.8,rbo*.8,rbo*1.7,rbo*2.02,BLK);box(Gn,gl-.16,gl-.08,-rbo*.8,rbo*.8,-rbo*2.02,-rbo*1.7,BLK);}}
+  if(mod&&!LOD)box(Gn,gx0+gl-.3,gx0+gl-.12,rbo*.9,rbo+.07,-.035,.035,DKST);
+  s.ty=hy;s.gx=s.to[0][0]-.3;s.gy=.4;s.mz=.35+s.gl;s.top=hy+s.th+.2;s.sight=[s.gx+.1,s.th+.3,0];s.v0=s.v0||1200;s.trav=s.trav||.6;s.acc=s.acc||4;s.disp=s.disp||.0015;
+  if(dim)dimline(H,[-hl,0,hw+.7],[s.tx+s.gx+s.mz,0,hw+.7],[0,0,-.35]);
+  return[H,T,Gn].map(fin);
+}
+/* ===== per-tank gun and suspension sheets ===== */
+var REFNOTE='(reference model, approximate figures)';
+function springUnit(g,volute){
+  if(volute)lathe(g,[[0,.11],[.25,.11],[.25,.09],[.5,.09],[.5,.07],[.75,.07],[.75,.05],[1,.05]],14,STEEL);
+  else{var pr=[],i;for(i=0;i<=18;i++)pr.push([i/18,i%2?.075:.055,0]);lathe(g,pr,12,STEEL);}
+}
+function gunSheet(s){
+  if(s.gsheet)return s.gsheet;
+  var g=s.g,rb=g.cal/2000,L=g.cal*g.L/1000,ro=rb*2.6,bs=rb*5.2,len=g.rl,rc=rb*1.3,cr=ro*1.5,c2=[s.col[0]*.76,s.col[1]*.76,s.col[2]*.76];
+  var S=grp(),Rc=grp(),Bk=grp(),Rd=grp();
+  lathe(Rc,[[0,ro],[L*.22,ro],[L*.25,ro*.8],[L-.02,rb*1.7]],20,s.col);
+  if(g.evac)lathe(Rc,[[L*.5,rb*3],[L*.5+.75,rb*3]],20,c2);
+  if(g.brk===2){lathe(Rc,[[L-.52,rb*3.4],[L-.36,rb*3.4]],16,DKST);lathe(Rc,[[L-.2,rb*3],[L-.04,rb*3]],16,DKST);}
+  if(g.brk===1)lathe(Rc,[[L-.4,rb*3.2],[L-.04,rb*3.2]],16,DKST);
+  cyl(Rc,[L,0,0],'x',rb,rb,.004,14,BLK);
+  box(Rc,-.5,0,-bs,bs,-bs,bs,STEEL);
+  dimline(Rc,[0,bs+.35,0],[L,bs+.35,0],[0,-.2,0]);
+  box(Bk,-.56,-.2,-bs*.8,bs*.8,-bs*.55,bs*.55,DKST);
+  lathe(S,[[.15,cr],[1.25,cr]],16,c2);
+  cyl(S,[-.1,cr+.07,0],'x',.06,.06,1.4,10,STEEL);cyl(S,[-.1,-cr-.07,0],'x',.06,.06,1.4,10,STEEL);
+  cyl(S,[.8,0,-cr-.3],'z',.09,.09,2*(cr+.3),12,STEEL);
+  box(S,.68,.92,-1,0,cr+.18,cr+.3,DKST);box(S,.68,.92,-1,0,-cr-.3,-cr-.18,DKST);
+  box(S,-1.5-len,1.6,-1.06,-1,-.6,.6,DKST);
+  box(S,-1.25-len,-1.05,-rc-.07,-rc-.02,-.14,.14,DKST);box(S,-1.3-len*.5,-1.1-len*.5,-1,-rc-.07,-.06,.06,DKST);
+  var lc=g.sep?len*.5:len*.6,gap=g.sep?len*.08:0,px=lc+gap;
+  lathe(Rd,[[0,rc],[lc*.85,rc],[lc,rb]],12,BRASS);
+  lathe(Rd,[[px,rb],[px+(len-px)*.45,rb],[px+(len-px)*.75,rb*.7,0],[len,0,0]],12,DKST);
+  s.gsheet={name:'GUN',title:s.name,title2:REFNOTE,des:s.name,sub:'Main armament &mdash; '+s.gun,dwg:'REF-'+s.name.replace(/[^A-Z0-9]+/g,'-')+'-GUN',
+    R:(L+1.5+len)/2+.5,tg:[(L-1.5-len)/2,-.2,0],groups:[S,Rc,Bk,Rd].map(fin),
+    sl:[['RECOIL',0,100,0,'%'],['BREECH',0,100,0,'%']],action:'FIRE CYCLE',
+    pose:function(p){var t=an.t,rec=0,op=0,ram=0;
+      if(t>=0){rec=t<.1?t/.1:t<.45?1-(t-.1)/.35:0;op=t<.3?0:t<.5?ease((t-.3)/.2):t<.85?1:1-ease((t-.85)/.15);ram=t<.55?0:t<.8?ease((t-.55)/.25):1;}
+      rec=Math.min(1,p[0]/100+rec);op=Math.min(1,p[1]/100+op);
+      var M1=trans(-rec*.4,0,0);return[I,M1,mul(M1,trans(0,-op*bs*1.7,0)),trans(-1.1-len+ram*(len+.95),0,0)];},
+    labels:[{g:1,p:[L*.62,rb*2,0],t:s.gun.toUpperCase()},
+      {g:1,p:g.brk?[L-.3,rb*3.2,0]:g.evac?[L*.5+.4,rb*3,0]:[L-.05,rb*1.7,0],t:g.brk===2?'DOUBLE-BAFFLE MUZZLE BRAKE':g.brk?'MUZZLE BRAKE':g.evac?'BORE EVACUATOR':'MUZZLE'},
+      {g:2,p:[-.56,0,bs*.55],t:'SLIDING-WEDGE BREECH'},
+      {g:3,p:[len*.75,rb,0],t:g.cal+' mm ROUND',v:g.sep?'SEPARATE-LOADING':'FIXED'},
+      {g:0,p:[.5,cr+.13,0],t:'RECOIL CYLINDERS',w:1},{g:0,p:[-1.15-len*.5,-rc-.02,.14],t:g.auto?'AUTOLOADER FEED TRAY':'LOADING TRAY',w:1}],
+    dims:[{g:1,p:[L/2,bs+.35,0],t:'BARREL L/'+g.L+': '+Math.round(L*1000)+' mm'}],
+    specs:[['CALIBRE',g.cal+' MM'],['BARREL LENGTH','L/'+g.L+' ('+Math.round(L*1000)+' MM)'],['MUZZLE VELOCITY',s.v0+' M/S'],
+      ['PENETRATION',s.pen+' MM'],['RELOAD',s.rl+' S'],['LOADING',g.auto?'AUTOLOADER':'MANUAL'],['AMMUNITION',g.sep?'SEPARATE-LOADING':'FIXED ROUND']]};
+  s.gsheet.p=[0,0];return s.gsheet;
+}
+function hvssSheet(s){
+  var S=grp(),AF=grp(),AR=grp(),WF=grp(),WR=grp(),Sp=grp(),i;
+  box(S,-1.1,1.1,-.25,.78,-.04,0,GREEN2);box(S,-.14,.14,-.1,.5,0,.22,DKST);
+  cyl(S,[0,0,0],'z',.06,.06,.5,10,STEEL);cyl(S,[0,.62,.1],'z',.11,.11,.42,12,DKST);
+  cyl(S,[-.3,.44,.29],'x',.04,.04,.6,8,DKST);
+  for(i=0;i<12;i++)box(S,-1.02+i*.17,-1.02+i*.17+.16,-.54,-.462,.2,.8,i%2?TRK1:TRK2);
+  [[AF,1],[AR,-1]].forEach(function(q){var g=q[0],m=q[1];
+    loft(g,[[[0,.06,.24],[0,-.06,.24],[m*.44,-.25,.24],[m*.44,-.15,.24]],[[0,.06,.34],[0,-.06,.34],[m*.44,-.25,.34],[m*.44,-.15,.34]]],GREEN);
+    loft(g,[[[-m*.03,0,.24],[m*.08,0,.24],[m*.24,.26,.24],[m*.14,.3,.24]],[[-m*.03,0,.34],[m*.08,0,.34],[m*.24,.26,.34],[m*.14,.3,.34]]],GREEN);
+    cyl(g,[m*.42,-.2,.2],'z',.04,.04,.6,8,STEEL);});
+  roadWheel(WF,0,0,.26,.5,true);roadWheel(WR,0,0,.26,.5,true);
+  springUnit(Sp,true);
+  var sh={name:'SUSPENSION',title:s.name,title2:REFNOTE,des:s.name,sub:'Horizontal volute spring suspension (HVSS) bogie',dwg:'REF-'+s.name.replace(/[^A-Z0-9]+/g,'-')+'-SUSP',
+    R:1.45,tg:[0,.1,.25],groups:[S,AF,AR,WF,WR,Sp].map(fin),
+    sl:[['TRAVEL',-6,14,0,'°'],['ROLL',0,360,0,'°']],
+    pose:function(p){var a=p[0]*D,MF=rotZ(a),MR=rotZ(-a),f=xf(MF,[.19,.28,.29],1),r=xf(MR,[-.19,.28,.29],1),d=Math.hypot(f[0]-r[0],f[1]-r[1]);
+      return[I,MF,MR,mul(MF,mul(trans(.42,-.2,0),rotZ(-p[1]*D))),mul(MR,mul(trans(-.42,-.2,0),rotZ(-p[1]*D))),mul(aim(r,f),scl(d,1,1))];},
+    labels:[{g:5,p:[.5,.09,0],t:'HORIZONTAL VOLUTE SPRING'},{g:1,p:[.25,-.1,.34],t:'SWING ARM'},{g:0,p:[0,.73,.3],t:'RETURN ROLLER'},
+      {g:3,p:[0,0,.8],t:'DUAL ROAD WHEEL'},{g:0,p:[0,.44,.33],t:'SHOCK ABSORBER',w:1},{g:0,p:[0,.3,.22],t:'BOGIE BRACKET',w:1}],
+    dims:[],specs:[['SPRINGING','HORIZONTAL VOLUTE SPRING'],['LAYOUT','3 BOGIES PER SIDE'],['ROAD WHEELS','6 DUAL PER SIDE'],['WHEEL DIAMETER','520 MM'],['DAMPING','SHOCK ABSORBER PER BOGIE']]};
+  sh.p=[0,0];return sh;
+}
+function suspSheet(s){
+  if(s.ssheet)return s.ssheet;
+  var u=s.su,sh=u.t==='v'?hvssSheet(s):buildSusp({t:u.t,r:u.r,inter:u.inter});
+  if(u.t!=='v'){sh.title=s.name;sh.title2=REFNOTE;sh.des=s.name;sh.dwg='REF-'+s.name.replace(/[^A-Z0-9]+/g,'-')+'-SUSP';sh.p=[0,0];
+    sh.specs.push(['ROAD WHEEL DIAMETER',Math.round(u.r*2000)+' MM'],['WHEEL STATIONS',s.nw+' PER SIDE']);}
+  s.ssheet=sh;return sh;
+}
+
+var ktSheet=null,ktAll=null;
+// blueprint sheet for any roster tank, built at full detail the first time it is viewed
+function tankSheet(s){
+  if(s===KT)return ktSheet;if(s.sheet)return s.sheet;
+  var was=LOD;LOD=false;var g=mbt(s,true);LOD=was;
+  var a=s.arm,ang=s.ga!==undefined?s.ga:Math.round(Math.atan(1.9/(s.hy-1.14))/D),g0=s.ga!==undefined?Math.max(.08,(s.hy-1.14)*Math.tan(s.ga*D)):1.9;
+  var len=Math.round((s.hl+s.tx+s.gx+s.mz)*100)*10,t=s.to;
+  s.sheet={name:'TANK',title:s.name,title2:'(reference model, approximate figures)',des:s.name,
+    sub:'General exterior &mdash; '+(s.era?'modern main battle tank':'WWII-era tank'),dwg:'REF-'+s.name.replace(/[^A-Z0-9]+/g,'-')+'-R0',
+    R:s.gx+s.mz+.9,tg:[s.tx,1.1,0],groups:g,
+    sl:[['TURRET',-180,180,0,'\u00b0'],['GUN ELEV.',-8,20,0,'\u00b0']],
+    pose:function(p){var M1=mul(trans(s.tx,s.ty,0),rotY(-p[0]*D));return[I,M1,mul(M1,mul(trans(s.gx,s.gy,0),rotZ(p[1]*D)))];},
+    labels:[s.front?{g:0,p:s.glp,t:'DRIVER\'S FRONT PLATE',v:a.LP+' mm, near-vertical'}:{g:0,p:[s.hl-g0/2,(s.hy+1.14)/2,.3],t:'UPPER GLACIS',v:a.UG+' mm @ '+ang+'\u00b0 = '+Math.round(a.UG/Math.cos(ang*D))+' mm'},
+      {g:1,p:[t[0][0]*.96,s.th*.5,0],t:'TURRET FRONT',v:a.TF+' mm'},
+      {g:1,p:[(t[1][0]+t[t.length-2][0])/2*.96,s.th*.5,(t[1][1]+t[t.length-2][1])/2*.9],t:'TURRET SIDE',v:a.TS+' mm'},
+      {g:0,p:[0,.9,s.hw],t:'HULL SIDE',v:a.HS+' mm'},{g:2,p:[.35+s.gl*.6,.1,0],t:s.gun},
+      {g:0,p:[-s.hl,1.3,-.4],t:'HULL REAR',v:a.HR+' mm',w:1},{g:1,p:[t[t.length-1][0]*.96,s.th*.5,0],t:'TURRET REAR',v:a.TR+' mm',w:1},
+      {g:0,p:[s.hl-.5,.75,0],t:'LOWER FRONT PLATE',v:a.LP+' mm',w:1}],
+    dims:[{g:0,p:[(s.tx+s.gx+s.mz-s.hl)/2,0,s.hw+.7],t:'LENGTH: '+len+' mm'}],
+    specs:[['MAIN GUN',s.gun.toUpperCase()],['PENETRATION',s.pen+' MM'],['MUZZLE VELOCITY',s.v0+' M/S'],['RELOAD',s.rl+' S'],
+      ['TOP SPEED',Math.round(s.vmax*3.6)+' KM/H'],['TURRET TRAVERSE',Math.round(s.trav/D)+'\u00b0/S'],['ROOF ARMOUR',a.TOP+' MM']]};
+  if(s.lp)s.sheet.labels.forEach(function(L){if(s.lp[L.t])L.p=s.lp[L.t];});
+  if(s.xlab)s.sheet.labels=s.sheet.labels.concat(s.xlab);
+  if(s.xspec)s.sheet.specs=s.sheet.specs.concat(s.xspec);
+  if(s.note)s.sheet.title2=s.note;
+  s.sheet.p=[0,0];return s.sheet;
+}
+var ktGeo,treeG,treeG2,battleReady=false,LX=.55,LY=.57,LZ=.61,vcol=null,TEX=null,SPR={},stamp=null,GA=1,GB=1;
+function mkSprite(n,st){var c=document.createElement('canvas');c.width=c.height=64;var x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
+  st.forEach(function(q){g.addColorStop(q[0],q[1]);});x.fillStyle=g;x.fillRect(0,0,64,64);SPR[n]=c;}
+function initBattle(){
+  if(battleReady)return;battleReady=true;
+  var i,j,k;hmap=new Float32Array(NG*NG);
+  for(j=0;j<NG;j++)for(i=0;i<NG;i++){var x=i*TS-HALF,z=j*TS-HALF;
+    hmap[j*NG+i]=7*Math.sin(x*.011+1.3)*Math.cos(z*.013)+3*Math.sin(x*.031+z*.027)+1.2*Math.sin(x*.07-.5)*Math.sin(z*.063+2);}
+  // per-vertex ground colour, lit by a low warm sun with cool sky fill
+  vcol=new Float32Array(NG*NG*3);
+  for(j=0;j<NG;j++)for(i=0;i<NG;i++){k=j*NG+i;var il=i>0?k-1:k,ir=i<NG-1?k+1:k,jd=j>0?k-NG:k,ju=j<NG-1?k+NG:k;
+    var sx=(hmap[ir]-hmap[il])/((ir-il)*TS),sz=(hmap[ju]-hmap[jd])/((ju-jd)/NG*TS),l=Math.sqrt(sx*sx+1+sz*sz),d=Math.max(0,(-sx*LX+LY-sz*LZ)/l);
+    var x2=i*TS,z2=j*TS,n=.5+.5*Math.sin(x2*.021+3*Math.sin(z2*.017)),n2=.5+.5*Math.sin(x2*.0063-z2*.0091+1.7),hg=clamp((hmap[k]+9)/20,0,1);
+    var sl=clamp((Math.abs(sx)+Math.abs(sz))*1.6-.1,0,1),dry=n*(.35+.65*n2)*(.5+.5*hg);
+    var r=.2+.06*hg,g=.34+.03*hg,b=.13+.02*hg;
+    r+=(.5-r)*dry;g+=(.46-g)*dry;b+=(.27-b)*dry;r+=(.42-r)*sl;g+=(.34-g)*sl;b+=(.24-b)*sl;
+    vcol[k*3]=Math.min(235,255*r*(.34+.98*d));vcol[k*3+1]=Math.min(235,255*g*(.37+.92*d));vcol[k*3+2]=Math.min(235,255*b*(.43+.8*d));}
+  // tileable ground detail texture
+  TEX=new Uint8Array(4096);
+  for(j=0;j<64;j++)for(i=0;i<64;i++){var u=i/64*6.2832,v=j/64*6.2832;
+    TEX[j*64+i]=clamp(128+26*Math.sin(u*2+1.3*Math.sin(v))*Math.cos(v*3)+18*Math.sin(u*5+v*4)+(RN()-.5)*70,20,236);}
+  function addTree(x,z,kind){if(Math.abs(x)>450||Math.abs(z)>450||Math.hypot(x,z)<30)return;
+    var t=.8+RN()*.4;trees.push({x:x,z:z,y:hAt(x,z)-.2,s:.75+RN()*.8,k:kind,r:t*(.9+RN()*.2),g:t,b:t*(.85+RN()*.2)});}
+  for(i=0;i<46;i++){var cx=(RN()*2-1)*430,cz=(RN()*2-1)*430,kd=RN()<.6?0:1;
+    for(j=0;j<7;j++)addTree(cx+(RN()*2-1)*30,cz+(RN()*2-1)*30,RN()<.8?kd:1-kd);}
+  for(i=0;i<70;i++)addTree((RN()*2-1)*440,(RN()*2-1)*440,RN()<.5?0:1);
+  LOD=true;
+  ktGeo=buildTank().groups;
+  TYPES.forEach(function(s){s.geo=mbt(s);});WW2.forEach(function(s){s.geo=mbt(s);});
+  var t=grp();cyl(t,[0,0,0],'y',.2,.16,2,10,[.3,.22,.15]);
+  withT(rotZ(Math.PI/2),function(){lathe(t,[[1.5,1.7],[4.3,0]],12,[.13,.23,.12],true);lathe(t,[[3.3,1.25],[6.0,0]],12,[.16,.27,.14],true);lathe(t,[[5.0,.8],[7.4,0]],12,[.19,.31,.16],true);});
+  treeG=fin(t);
+  t=grp();cyl(t,[0,0,0],'y',.25,.2,2.6,10,[.32,.25,.17]);
+  withT(mul(trans(0,4.6,0),scl(2.6,2.3,2.6)),function(){lathe(t,[[-1,0],[-.7,.72,0],[0,1,0],[.7,.72,0],[1,0]],14,[.2,.33,.14]);});
+  treeG2=fin(t);
+  LOD=false;
+  mkSprite('smoke',[[0,'rgba(92,90,86,.85)'],[.5,'rgba(100,98,94,.5)'],[1,'rgba(110,108,104,0)']]);
+  mkSprite('dark',[[0,'rgba(22,22,22,.92)'],[.6,'rgba(34,33,32,.5)'],[1,'rgba(40,40,40,0)']]);
+  mkSprite('fire',[[0,'rgba(255,244,200,1)'],[.3,'rgba(255,176,64,.85)'],[.7,'rgba(226,74,20,.35)'],[1,'rgba(160,40,10,0)']]);
+  mkSprite('dust',[[0,'rgba(158,142,110,.6)'],[.6,'rgba(158,142,110,.3)'],[1,'rgba(158,142,110,0)']]);
+  mkSprite('cloud',[[0,'rgba(255,255,255,.9)'],[.5,'rgba(255,255,255,.45)'],[1,'rgba(255,255,255,0)']]);
+  mkSprite('sun',[[0,'rgba(255,250,225,1)'],[.12,'rgba(255,240,190,.55)'],[.5,'rgba(255,225,160,.14)'],[1,'rgba(255,220,150,0)']]);
+}
+var Gm={p:null,en:[],sh:[],fx:[],kills:0,msg:'',msgT:0,aimYaw:0,aimPitch:.1,sight:false,dead:false,deadT:0,shake:0,flash:0,
+  spawnT:0,spawnN:0,time:0,pick:0,foe:0,eye:[0,5,-13],dir:[1,0,0],aimD:300,aimE:null,fire:false,VP:null},K={},joy={x:0,y:0},battle=false;
+function resetGame(){
+  var sp=ROSTER[Gm.pick];
+  Gm.p={x:0,z:0,yaw:.4,v:0,ty:0,el:0,hp:100,rl:0,ammo:sp.mag||1,drum:0,rec:0,kick:0,spec:sp,geo:sp===KT?ktGeo:sp.geo};
+  Gm.en=[];Gm.sh=[];Gm.fx=[];Gm.kills=0;Gm.dead=false;Gm.deadT=0;Gm.aimYaw=.4;Gm.aimPitch=.1;Gm.spawnN=0;Gm.spawnT=0;
+  place(Gm.p);for(var i=0;i<3;i++)spawn();
+  say(sp.name+': '+sp.gun+', PEN '+sp.pen+' mm, RELOAD '+sp.rl+' s',6);
+}
+function say(m,t){Gm.msg=m;Gm.msgT=t||2.5;}
+function spawn(){var p=Gm.p,a=RN()*6.283,r=200+RN()*130,pool=Gm.foe===0?TYPES:Gm.foe===1?WW2:WW2.concat(TYPES),s=pool[Gm.foe===0?Gm.spawnN++%pool.length:(Gm.spawnN++,Math.floor(RN()*pool.length))];
+  var e={x:clamp(p.x+Math.cos(a)*r,-430,430),z:clamp(p.z+Math.sin(a)*r,-430,430),yaw:a+Math.PI,v:0,ty:0,el:0,hp:100,rl:3+RN()*4,
+    rec:0,kick:0,spec:s,geo:s.geo,los:false,losT:0,aimT:0,mode:0,modeT:0,gx:0,gz:0,wreck:false,wt:0};
+  place(e);Gm.en.push(e);}
+function place(t){
+  var c=Math.cos(t.yaw),s=Math.sin(t.yaw),L=2.6,Wd=1.4;
+  var hf=hAt(t.x+c*L,t.z+s*L),hb=hAt(t.x-c*L,t.z-s*L),hr=hAt(t.x-s*Wd,t.z+c*Wd),hl=hAt(t.x+s*Wd,t.z-c*Wd);
+  t.y=(hf+hb+hr+hl)/4;t.pitch=Math.atan2(hf-hb,2*L);t.roll=-Math.atan2(hr-hl,2*Wd);
+  t.Mh=mul(trans(t.x,t.y,t.z),mul(rotY(-t.yaw),mul(rotZ(t.pitch+t.kick),rotX(t.roll))));
+  var sp=t.spec;
+  t.Mt=t.wreck?mul(t.Mh,mul(trans(sp.tx+.5,sp.ty+.05,.6),mul(rotY(-t.ty),rotZ(.14)))):mul(t.Mh,mul(trans(sp.tx,sp.ty,0),rotY(-t.ty)));
+  t.Mg=mul(t.Mt,mul(trans(sp.gx-t.rec*.35,sp.gy,0),rotZ(t.wreck?-.12:t.el)));
+}
+function aimAt(t,A,v0,rate,dt){
+  var sp=t.spec,gp=xf(t.Mt,[sp.gx,sp.gy,0],1),dx=A[0]-gp[0],dy=A[1]-gp[1],dz=A[2]-gp[2],d=Math.hypot(dx,dy,dz);
+  dy+=.5*9.81*(d/v0)*(d/v0);
+  var m=t.Mh,lx=dx*m[0]+dy*m[1]+dz*m[2],ly=dx*m[4]+dy*m[5]+dz*m[6],lz=dx*m[8]+dy*m[9]+dz*m[10];
+  var tyT=Math.atan2(lz,lx),elT=clamp(Math.atan2(ly,Math.hypot(lx,lz)),-8*D,20*D),dd=wrap(tyT-t.ty),st=rate*dt,de=elT-t.el;
+  t.ty=wrap(t.ty+clamp(dd,-st,st));t.el+=clamp(de,-st*.4,st*.4);
+  return Math.abs(dd)<.02&&Math.abs(de)<.015;
+}
+function losClear(a,b){for(var i=1;i<12;i++){var f=i/12,x=a.x+(b.x-a.x)*f,z=a.z+(b.z-a.z)*f,y=a.y+2.2+(b.y-a.y)*f;if(hAt(x,z)>y)return false;}return true;}
+function raycast(o,d,t0){
+  var t=t0,st=2,best=900,hit=null,i;
+  while(t<900){var x=o[0]+d[0]*t,y=o[1]+d[1]*t,z=o[2]+d[2]*t;
+    if(y<hAt(x,z)){var a=t-st,b=t;for(i=0;i<6;i++){var m=(a+b)/2;if(o[1]+d[1]*m<hAt(o[0]+d[0]*m,o[2]+d[2]*m))b=m;else a=m;}best=b;break;}
+    st*=1.05;t+=st;}
+  Gm.en.forEach(function(e){if(e.wreck)return;var cx=e.x-o[0],cy=e.y+1.4-o[1],cz=e.z-o[2],tc=cx*d[0]+cy*d[1]+cz*d[2];
+    if(tc<t0)return;var q=cx*cx+cy*cy+cz*cz-tc*tc;if(q<6.8&&tc-1.5<best){best=tc-1.5;hit=e;}});
+  return{t:best,e:hit};
+}
+function addFx(k,x,y,z,life,size,vy){if(Gm.fx.length<140)Gm.fx.push({k:k,x:x,y:y,z:z,t:0,life:life,s:size,vy:vy||0});}
+function blast(x,y,z,big){addFx(0,x,y,z,big?.6:.32,big?5:2);addFx(3,x,y+.3,z,big?1.6:1.1,big?3:1.6,.6);for(var i=0;i<(big?7:3);i++)addFx(1,x+(RN()-.5)*2,y+.5,z+(RN()-.5)*2,1.6+RN(),big?2.5:1.2,2+RN()*2);}
+function shoot(t,v0,disp){
+  var sp=t.spec,m=xf(t.Mg,[sp.mz,0,0],1),d=xf(t.Mg,[1,0,0],0);
+  d[0]+=(RN()-.5)*2*disp;d[1]+=(RN()-.5)*2*disp;d[2]+=(RN()-.5)*2*disp;
+  Gm.sh.push({x:m[0],y:m[1],z:m[2],vx:d[0]*v0,vy:d[1]*v0,vz:d[2]*v0,own:t,life:4,pen:sp.pen});
+  t.rec=1;t.kick=.022;addFx(2,m[0],m[1],m[2],.1,1.6);addFx(1,m[0]+d[0]*1.5,m[1],m[2]+d[2]*1.5,.7,.8,1.5);addFx(3,t.x,t.y+.4,t.z,.9,2.2,.4);
+  var dist=Math.hypot(m[0]-Gm.eye[0],m[2]-Gm.eye[2]);sfx(.55/(1+dist/90),1100,.8);
+}
+function tryFire(){
+  var p=Gm.p;if(Gm.dead){if(Gm.deadT>1.5)resetGame();return;}
+  var sp=p.spec;if(p.rl>0||(sp.mag&&p.ammo<=0))return;shoot(p,sp.v0,sp.disp);p.rl=sp.rl;
+  if(sp.mag){p.ammo--;if(!p.ammo){p.drum=sp.magRl;say('DRUM EMPTY: RELOADING '+sp.magRl+' s',2.5);}}Gm.shake=.3;
+}
+var ZN={UG:'UPPER GLACIS',LP:'FRONT PLATE',HS:'HULL SIDE',HR:'HULL REAR',TF:'TURRET FRONT',TS:'TURRET SIDE',TR:'TURRET REAR',TOP:'ROOF'};
+function invPt(m,p){var x=p[0]-m[12],y=p[1]-m[13],z=p[2]-m[14];return[x*m[0]+y*m[1]+z*m[2],x*m[4]+y*m[5]+z*m[6],x*m[8]+y*m[9]+z*m[10]];}
+// exact shell-vs-armour test: segment against the tank's real triangles, so the plate's true slope is known
+function meshHit(t,p0,p1){
+  var best=null,Ms=[t.Mh,t.Mt,t.Mg];
+  for(var gi=0;gi<3;gi++){var a=invPt(Ms[gi],p0),b=invPt(Ms[gi],p1),dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],fa=t.geo[gi].fa,n=fa.length;
+    for(var o=0;o<n;o+=27){
+      var e1x=fa[o+9]-fa[o],e1y=fa[o+10]-fa[o+1],e1z=fa[o+11]-fa[o+2],e2x=fa[o+18]-fa[o],e2y=fa[o+19]-fa[o+1],e2z=fa[o+20]-fa[o+2];
+      var px=dy*e2z-dz*e2y,py=dz*e2x-dx*e2z,pz=dx*e2y-dy*e2x,det=e1x*px+e1y*py+e1z*pz;if(det>-1e-9&&det<1e-9)continue;
+      var inv=1/det,tx=a[0]-fa[o],ty=a[1]-fa[o+1],tz=a[2]-fa[o+2],u=(tx*px+ty*py+tz*pz)*inv;if(u<0||u>1)continue;
+      var qx=ty*e1z-tz*e1y,qy=tz*e1x-tx*e1z,qz=tx*e1y-ty*e1x,v=(dx*qx+dy*qy+dz*qz)*inv;if(v<0||u+v>1)continue;
+      var f=(e2x*qx+e2y*qy+e2z*qz)*inv;if(f<0||f>1)continue;
+      if(!best||f<best.f)best={f:f,g:gi,nx:fa[o+3],ny:fa[o+4],nz:fa[o+5],dx:dx,dy:dy,dz:dz,lx:a[0]+dx*f};}}
+  return best;
+}
+function hitTank(s,t,h){
+  var L=Math.hypot(h.dx,h.dy,h.dz),dot=(h.dx*h.nx+h.dy*h.ny+h.dz*h.nz)/L,sg=dot>0?-1:1,nx=h.nx*sg,ny=h.ny*sg,ci=Math.abs(dot),sp=t.spec,z;
+  if(h.g===0){if(nx>.15&&h.lx>sp.hl-2.3)z=ny>.3?'UG':'LP';else if(Math.abs(ny)>.85)z='TOP';else if(nx>.3)z=ny>.3?'UG':'LP';else if(nx<-.5)z='HR';else z='HS';}
+  else if(h.g===1){if(Math.abs(ny)>.85)z='TOP';else if(nx>.45)z='TF';else if(nx<-.5)z='TR';else z='TS';}
+  else z='TF';
+  if(t===Gm.p&&z==='TOP'&&h.dx/L<-.5)ci=Math.min(ci,.1); // roof seen from the frontal arc always glances off
+  var nom=sp.arm[z],ang=Math.round(Math.acos(Math.min(1,ci))/D),eff=Math.round(nom/Math.max(ci,.05));
+  var mine=s.own===Gm.p,isP=t===Gm.p,dmg=0,res,info=ZN[z]+' '+nom+'mm @'+ang+'° = '+eff+'mm';
+  if(t.wreck){blast(s.x,s.y,s.z,false);return;}
+  if(ci<.25){res='RICOCHET';info=ZN[z]+' '+nom+'mm @'+ang+'°';addFx(2,s.x,s.y,s.z,.12,.9);sfx(.25,3000,.25);}
+  else if(s.pen>=eff){res='PENETRATED';blast(s.x,s.y,s.z,false);
+    dmg=mine?(z==='HR'?100:z==='TR'?70:z==='TOP'?60:z==='HS'?50+RN()*15:45):14+RN()*8;}
+  else{res='NO PENETRATION';dmg=mine?8:2;blast(s.x,s.y,s.z,false);}
+  t.hp-=dmg;
+  if(mine)say(info+': '+res,3);
+  if(isP){Gm.flash=dmg>5?.5:.15;Gm.shake=dmg>5?.5:.25;say('HIT '+info+': '+(dmg>5?'PENETRATED':res==='RICOCHET'?'RICOCHET':'HELD'),3);
+    if(t.hp<=0&&!Gm.dead){Gm.dead=true;Gm.deadT=0;blast(t.x,t.y+1.5,t.z,true);sfx(.8,500,1.6);}}
+  else if(t.hp<=0){t.wreck=true;t.wt=0;t.v=0;Gm.kills++;Gm.spawnT=5;blast(t.x,t.y+1.5,t.z,true);sfx(.7,500,1.6);say(sp.name+' DESTROYED',3);}
+}
+function stepShell(s,dt){
+  var v=Math.hypot(s.vx,s.vy,s.vz),n=Math.max(1,Math.ceil(v*dt/1.2)),h=dt/n,i,j,all=[Gm.p].concat(Gm.en);
+  for(i=0;i<n;i++){var px=s.x,py=s.y,pz=s.z;s.x+=s.vx*h;s.y+=s.vy*h;s.z+=s.vz*h;s.vy-=9.81*h;
+    for(j=0;j<all.length;j++){var t=all[j];if(t===s.own)continue;if(t===Gm.p&&Gm.dead)continue;
+      var dx=s.x-t.x,dz=s.z-t.z;if(dx*dx+dz*dz>90)continue;
+      var m=meshHit(t,[px,py,pz],[s.x,s.y,s.z]);
+      if(m){s.x=px+(s.x-px)*m.f;s.y=py+(s.y-py)*m.f;s.z=pz+(s.z-pz)*m.f;hitTank(s,t,m);return true;}}
+    var g=hAt(s.x,s.z);if(s.y<g){blast(s.x,g,s.z,false);var dd=Math.hypot(s.x-Gm.eye[0],s.z-Gm.eye[2]);sfx(.3/(1+dd/60),700,.5);return true;}
+  }
+  s.life-=dt;return s.life<=0;
+}
+function updateEnemy(e,dt){
+  var p=Gm.p;e.rec=Math.max(0,e.rec-dt*2.5);e.kick*=Math.exp(-6*dt);
+  if(e.wreck){e.wt+=dt;if(RN()<dt*2.2)addFx(4,e.x+(RN()-.5),e.y+2,e.z+(RN()-.5),3,1.7,3.2);if(RN()<.25)addFx(0,e.x+(RN()-.5),e.y+2,e.z+(RN()-.5),.5,1.1,1);return;}
+  var dx=p.x-e.x,dz=p.z-e.z,dist=Math.hypot(dx,dz);
+  e.losT-=dt;if(e.losT<=0){e.losT=.3;var was=e.los;e.los=!Gm.dead&&dist<420&&losClear(e,p);if(e.los&&!was)e.aimT=0;}
+  e.modeT-=dt;if(e.modeT<=0){e.mode=e.mode?0:1;e.modeT=e.mode?7+RN()*6:5+RN()*4;
+    var a=RN()*6.283,r=130+RN()*130;e.gx=clamp(p.x+Math.cos(a)*r,-430,430);e.gz=clamp(p.z+Math.sin(a)*r,-430,430);}
+  var want,tv;
+  if(e.mode&&Math.hypot(e.gx-e.x,e.gz-e.z)>12){want=Math.atan2(e.gz-e.z,e.gx-e.x);tv=e.spec.vmax*.6;}
+  else{want=Math.atan2(dz,dx);tv=0;}
+  var dy=wrap(want-e.yaw);e.yaw+=clamp(dy,-.6*dt,.6*dt);if(Math.abs(dy)>1)tv*=.3;
+  e.v+=clamp(tv-e.v,-5*dt,3*dt);e.x=clamp(e.x+Math.cos(e.yaw)*e.v*dt,-440,440);e.z=clamp(e.z+Math.sin(e.yaw)*e.v*dt,-440,440);
+  e.rl-=dt;
+  if(e.los){e.aimT+=dt;var lead=dist/e.spec.v0*.6,pv=p.v;
+    var ok=aimAt(e,[p.x+Math.cos(p.yaw)*pv*lead,p.y+1.5,p.z+Math.sin(p.yaw)*pv*lead],e.spec.v0,Math.min(.5,e.spec.trav),dt);
+    if(ok&&e.rl<=0&&e.aimT>1.3){shoot(e,e.spec.v0,Math.abs(e.v)>2?.012:.0045);e.rl=e.spec.rl;}}
+  else aimAt(e,[e.x+Math.cos(e.yaw)*50,e.y+2,e.z+Math.sin(e.yaw)*50],e.spec.v0,.3,dt);
+}
+function updateGame(dt){
+  var p=Gm.p,i;Gm.time+=dt;
+  var thr=clamp((K.w?1:0)-(K.s?1:0)+joy.y,-1,1),str=clamp((K.d?1:0)-(K.a?1:0)+joy.x,-1,1);
+  var sens=Gm.sight?.3:1.3;
+  Gm.aimYaw+=((K.arrowright?1:0)-(K.arrowleft?1:0))*sens*dt;
+  Gm.aimPitch=clamp(Gm.aimPitch+((K.arrowdown?1:0)-(K.arrowup?1:0))*sens*.6*dt,-.35,.6);
+  if(Gm.dead){Gm.deadT+=dt;thr=str=0;if(RN()<dt*3)addFx(4,p.x,p.y+2.5,p.z,3,1.8,3.2);}
+  var PS=p.spec,tgt=thr>0?PS.vmax*thr:Math.min(8,PS.vmax*.4)*thr;
+  if(thr!==0)p.v+=clamp(tgt-p.v,-7*dt,PS.acc*dt);else p.v-=clamp(p.v,-3.5*dt,3.5*dt);
+  p.v-=9.81*Math.sin(p.pitch||0)*dt*.45;
+  p.yaw+=str*(.95-.45*Math.min(1,Math.abs(p.v)/PS.vmax))*dt*(p.v<-.5?-1:1);
+  p.x=clamp(p.x+Math.cos(p.yaw)*p.v*dt,-440,440);p.z=clamp(p.z+Math.sin(p.yaw)*p.v*dt,-440,440);
+  p.rec=Math.max(0,p.rec-dt*2.5);p.kick*=Math.exp(-6*dt);p.rl-=dt;
+  if(PS.mag&&p.ammo===0){p.drum-=dt;if(p.drum<=0)p.ammo=PS.mag;}
+  if(Math.abs(p.v)>3&&RN()<dt*6)addFx(3,p.x-Math.cos(p.yaw)*3.6+(RN()-.5)*3,p.y+.3,p.z-Math.sin(p.yaw)*3.6+(RN()-.5)*3,.7,.5,1.2);
+  Gm.en.forEach(function(e){var dx=e.x-p.x,dz=e.z-p.z,d=Math.hypot(dx,dz);if(d<6.5&&d>.01){var k=(6.5-d)/d;p.x-=dx*k*.5;p.z-=dz*k*.5;p.v*=.9;if(!e.wreck){e.x+=dx*k*.5;e.z+=dz*k*.5;}}});
+  // aim → turret
+  var ay=Gm.aimYaw,ap=Gm.aimPitch,dir=[Math.cos(ay)*Math.cos(ap),-Math.sin(ap),Math.sin(ay)*Math.cos(ap)];
+  if(!Gm.dead){var A=[Gm.eye[0]+Gm.dir[0]*Gm.aimD,Gm.eye[1]+Gm.dir[1]*Gm.aimD,Gm.eye[2]+Gm.dir[2]*Gm.aimD];aimAt(p,A,PS.v0,PS.trav,dt);}
+  place(p);
+  var eye;
+  if(Gm.sight&&!Gm.dead)eye=xf(p.Mt,PS.sight,1);
+  else{eye=[p.x-dir[0]*16,p.y+6-dir[1]*16,p.z-dir[2]*16];var g=hAt(eye[0],eye[2])+1.2;if(eye[1]<g)eye[1]=g;}
+  Gm.shake=Math.max(0,Gm.shake-dt*1.6);if(Gm.shake>0){eye[0]+=(RN()-.5)*Gm.shake*.5;eye[1]+=(RN()-.5)*Gm.shake*.5;}
+  Gm.eye=eye;Gm.dir=dir;
+  var rc=raycast(eye,dir,Gm.sight?3:18);Gm.aimD=rc.t;Gm.aimE=rc.e;
+  if(K[' ']||Gm.fire||Gm.fireB)tryFire();
+  for(i=0;i<Gm.en.length;i++){var e=Gm.en[i];updateEnemy(e,dt);place(e);}
+  Gm.en=Gm.en.filter(function(e){return!(e.wreck&&e.wt>45);});
+  var alive=0;Gm.en.forEach(function(e){if(!e.wreck)alive++;});
+  if(alive<3&&!Gm.dead){Gm.spawnT-=dt;if(Gm.spawnT<=0){spawn();Gm.spawnT=4;}}
+  Gm.sh=Gm.sh.filter(function(s){return!stepShell(s,dt);});
+  Gm.fx.forEach(function(f){f.t+=dt;f.y+=f.vy*dt;});Gm.fx=Gm.fx.filter(function(f){return f.t<f.life;});
+  Gm.msgT-=dt;Gm.flash=Math.max(0,Gm.flash-dt);
+  if(eng){try{eng.o.frequency.value=36+Math.abs(p.v)*3.2;eng.o2.frequency.value=54+Math.abs(p.v)*4.8;eng.g.gain.value=sndOn&&battle?.04+Math.abs(thr)*.03:0;}catch(x){}}
+}
+/* ---- audio ---- */
+var AC=null,nbuf=null,eng=null,sndOn=true;
+function audioInit(){
+  if(AC){try{if(AC.state==='suspended')AC.resume();}catch(x){}return;}
+  try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A();
+    nbuf=AC.createBuffer(1,Math.floor(AC.sampleRate*1.6),AC.sampleRate);var d=nbuf.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    var o=AC.createOscillator(),o2=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();
+    o.type='sawtooth';o2.type='square';o.frequency.value=36;o2.frequency.value=54;f.type='lowpass';f.frequency.value=210;g.gain.value=0;
+    o.connect(f);o2.connect(f);f.connect(g);g.connect(AC.destination);o.start();o2.start();eng={o:o,o2:o2,g:g};
+  }catch(x){AC=null;eng=null;}
+}
+function sfx(vol,cut,dur){
+  if(!AC||!sndOn||vol<.01)return;
+  try{var s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain(),t=AC.currentTime;s.buffer=nbuf;
+    f.type='lowpass';f.frequency.setValueAtTime(cut,t);f.frequency.exponentialRampToValueAtTime(70,t+dur);
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    s.connect(f);f.connect(g);g.connect(AC.destination);s.start(t);s.stop(t+dur);}catch(x){}
+}
+/* ---- game rasteriser ---- */
+function tri(x0,y0,z0,x1,y1,z1,x2,y2,z2,col){
+  var w=zw,h=zh,ar=(x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);if(ar>-1e-7&&ar<1e-7)return;
+  var mnx=Math.max(0,Math.floor(Math.min(x0,x1,x2))),mxx=Math.min(w-1,Math.ceil(Math.max(x0,x1,x2)));
+  var mny=Math.max(0,Math.floor(Math.min(y0,y1,y2))),mxy=Math.min(h-1,Math.ceil(Math.max(y0,y1,y2)));
+  if(mnx>mxx||mny>mxy)return;
+  var inv=1/ar,d0=(y1-y2)*inv,d1=(y2-y0)*inv,dz=d0*z0+d1*z1-(d0+d1)*z2;
+  for(var yy=mny;yy<=mxy;yy++){
+    var py=yy+.5,px=mnx+.5,w0=((x1-px)*(y2-py)-(x2-px)*(y1-py))*inv,w1=((x2-px)*(y0-py)-(x0-px)*(y2-py))*inv;
+    var zz=w0*z0+w1*z1+(1-w0-w1)*z2,ix=yy*w+mnx;
+    for(var xx=mnx;xx<=mxx;xx++){if(w0>=-1e-4&&w1>=-1e-4&&w0+w1<=1.0001&&zz<zb[ix]){zb[ix]=zz;pxb[ix]=col;}w0+=d0;w1+=d1;zz+=dz;ix++;}
+  }
+}
+// shadow: darkens ground pixels lying just behind the projected triangle, once per pixel
+function triS(x0,y0,z0,x1,y1,z1,x2,y2,z2){
+  var w=zw,h=zh,ar=(x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);if(ar>-1e-7&&ar<1e-7)return;
+  var mnx=Math.max(0,Math.floor(Math.min(x0,x1,x2))),mxx=Math.min(w-1,Math.ceil(Math.max(x0,x1,x2)));
+  var mny=Math.max(0,Math.floor(Math.min(y0,y1,y2))),mxy=Math.min(h-1,Math.ceil(Math.max(y0,y1,y2)));
+  if(mnx>mxx||mny>mxy)return;
+  var inv=1/ar,d0=(y1-y2)*inv,d1=(y2-y0)*inv,dz=d0*z0+d1*z1-(d0+d1)*z2,K=1.5/GA;
+  for(var yy=mny;yy<=mxy;yy++){
+    var py=yy+.5,px=mnx+.5,w0=((x1-px)*(y2-py)-(x2-px)*(y1-py))*inv,w1=((x2-px)*(y0-py)-(x0-px)*(y2-py))*inv;
+    var zz=w0*z0+w1*z1+(1-w0-w1)*z2,ix=yy*w+mnx;
+    for(var xx=mnx;xx<=mxx;xx++){
+      if(w0>=-1e-4&&w1>=-1e-4&&w0+w1<=1.0001&&!stamp[ix]){var zt=zb[ix],e=GB-zz;
+        if(zz<zt&&zt-zz<K*e*e){stamp[ix]=1;var c=pxb[ix];
+          pxb[ix]=(255<<24|((((c>>16)&255)*158)>>8)<<16|((((c>>8)&255)*140)>>8)<<8|(((c&255)*132)>>8))>>>0;}}
+      w0+=d0;w1+=d1;zz+=dz;ix++;}
+  }
+}
+var PO=new Float32Array(48),PX=new Float32Array(12),PY=new Float32Array(12),PZ=new Float32Array(12),NEAR=.4;
+function drawPoly(src,n,col,sh){
+  var i,j,k,m=0,out=false,buf=src;
+  for(i=0;i<n;i++)if(src[i*4+3]<NEAR){out=true;break;}
+  if(out){for(i=0;i<n;i++){j=(i+1)%n;var a=src[i*4+3],b=src[j*4+3],ia=a>=NEAR,ib=b>=NEAR;
+      if(ia){for(k=0;k<4;k++)PO[m*4+k]=src[i*4+k];m++;}
+      if(ia!==ib){var t=(NEAR-a)/(b-a);for(k=0;k<4;k++)PO[m*4+k]=src[i*4+k]+(src[j*4+k]-src[i*4+k])*t;m++;}}
+    if(m<3)return;buf=PO;n=m;}
+  for(i=0;i<n;i++){var w=buf[i*4+3];PX[i]=(buf[i*4]/w*.5+.5)*zw;PY[i]=(.5-buf[i*4+1]/w*.5)*zh;PZ[i]=buf[i*4+2]/w;}
+  for(i=1;i<n-1;i++){if(sh)triS(PX[0],PY[0],PZ[0],PX[i],PY[i],PZ[i],PX[i+1],PY[i+1],PZ[i+1]);
+    else tri(PX[0],PY[0],PZ[0],PX[i],PY[i],PZ[i],PX[i+1],PY[i+1],PZ[i+1],col);}
+}
+// terrain: smooth vertex colour plus perspective-correct detail texture
+var PR=new Float32Array(12),PG=new Float32Array(12),PB=new Float32Array(12),PU=new Float32Array(12),PV=new Float32Array(12),PQ=new Float32Array(12),PO9=new Float32Array(108);
+function triT(a,b,c){
+  var x0=PX[a],y0=PY[a],x1=PX[b],y1=PY[b],x2=PX[c],y2=PY[c],w=zw,h=zh,ar=(x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);if(ar>-1e-7&&ar<1e-7)return;
+  var mnx=Math.max(0,Math.floor(Math.min(x0,x1,x2))),mxx=Math.min(w-1,Math.ceil(Math.max(x0,x1,x2)));
+  var mny=Math.max(0,Math.floor(Math.min(y0,y1,y2))),mxy=Math.min(h-1,Math.ceil(Math.max(y0,y1,y2)));
+  if(mnx>mxx||mny>mxy)return;
+  var inv=1/ar,d0=(y1-y2)*inv,d1=(y2-y0)*inv;
+  var z2=PZ[c],za=PZ[a]-z2,zb2=PZ[b]-z2,r2=PR[c],ra=PR[a]-r2,rb=PR[b]-r2,g2=PG[c],ga=PG[a]-g2,gb=PG[b]-g2,b2=PB[c],ba=PB[a]-b2,bb=PB[b]-b2;
+  var u2=PU[c],ua=PU[a]-u2,ub=PU[b]-u2,v2=PV[c],va=PV[a]-v2,vb=PV[b]-v2,q2=PQ[c],qa=PQ[a]-q2,qb=PQ[b]-q2;
+  var dz=d0*za+d1*zb2,dr=d0*ra+d1*rb,dg=d0*ga+d1*gb,db=d0*ba+d1*bb,du=d0*ua+d1*ub,dv=d0*va+d1*vb,dq=d0*qa+d1*qb;
+  for(var yy=mny;yy<=mxy;yy++){
+    var py=yy+.5,px=mnx+.5,w0=((x1-px)*(y2-py)-(x2-px)*(y1-py))*inv,w1=((x2-px)*(y0-py)-(x0-px)*(y2-py))*inv;
+    var zz=z2+w0*za+w1*zb2,rr=r2+w0*ra+w1*rb,gg=g2+w0*ga+w1*gb,bl=b2+w0*ba+w1*bb,uu=u2+w0*ua+w1*ub,vv=v2+w0*va+w1*vb,qq=q2+w0*qa+w1*qb,ix=yy*w+mnx;
+    for(var xx=mnx;xx<=mxx;xx++){
+      if(w0>=-1e-4&&w1>=-1e-4&&w0+w1<=1.0001&&zz<zb[ix]){zb[ix]=zz;
+        var q=8/qq,f=qq*18;if(f>1)f=1;var m=256+(TEX[(((vv*q)&63)<<6)|((uu*q)&63)]-128)*f;
+        var R=(rr*m)>>8,G=(gg*m)>>8,B=(bl*m)>>8;
+        pxb[ix]=(255<<24|(B>255?255:B)<<16|(G>255?255:G)<<8|(R>255?255:R))>>>0;}
+      w0+=d0;w1+=d1;zz+=dz;rr+=dr;gg+=dg;bl+=db;uu+=du;vv+=dv;qq+=dq;ix++;}
+  }
+}
+function drawPolyT(src,n){
+  var i,j,k,m=0,out=false,buf=src;
+  for(i=0;i<n;i++)if(src[i*9+3]<NEAR){out=true;break;}
+  if(out){for(i=0;i<n;i++){j=(i+1)%n;var a=src[i*9+3],b=src[j*9+3],ia=a>=NEAR,ib=b>=NEAR;
+      if(ia){for(k=0;k<9;k++)PO9[m*9+k]=src[i*9+k];m++;}
+      if(ia!==ib){var t=(NEAR-a)/(b-a);for(k=0;k<9;k++)PO9[m*9+k]=src[i*9+k]+(src[j*9+k]-src[i*9+k])*t;m++;}}
+    if(m<3)return;buf=PO9;n=m;}
+  for(i=0;i<n;i++){var o=i*9,q=1/buf[o+3];PX[i]=(buf[o]*q*.5+.5)*zw;PY[i]=(.5-buf[o+1]*q*.5)*zh;PZ[i]=buf[o+2]*q;
+    PR[i]=buf[o+4];PG[i]=buf[o+5];PB[i]=buf[o+6];PU[i]=buf[o+7]*q;PV[i]=buf[o+8]*q;PQ[i]=q;}
+  for(i=1;i<n-1;i++)triT(0,i,i+1);
+}
+var TC=new Float32Array(12);
+// mode 0: lit; 2: lit hull (adds dust and darkening low on the running gear)
+function drawObj(fa,m,VP,eye,tr,tg,tb,mode){
+  var P=mul(VP,m),nt=fa.length/27,t,k,x,y,z;
+  for(t=0;t<nt;t++){var o=t*27,beh=0,l=0,r=0,u=0,dn=0;
+    for(k=0;k<3;k++){var q=o+k*9;x=fa[q];y=fa[q+1];z=fa[q+2];
+      var cx=P[0]*x+P[4]*y+P[8]*z+P[12],cy=P[1]*x+P[5]*y+P[9]*z+P[13],cw=P[3]*x+P[7]*y+P[11]*z+P[15];
+      TC[k*4]=cx;TC[k*4+1]=cy;TC[k*4+2]=P[2]*x+P[6]*y+P[10]*z+P[14];TC[k*4+3]=cw;
+      if(cw<NEAR)beh++;if(cx>cw)r++;if(cx<-cw)l++;if(cy>cw)u++;if(cy<-cw)dn++;}
+    if(beh===3||l===3||r===3||u===3||dn===3)continue;
+    x=fa[o];y=fa[o+1];z=fa[o+2];
+    var vx=eye[0]-(m[0]*x+m[4]*y+m[8]*z+m[12]),vy=eye[1]-(m[1]*x+m[5]*y+m[9]*z+m[13]),vz=eye[2]-(m[2]*x+m[6]*y+m[10]*z+m[14]);
+    var vl=1/Math.sqrt(vx*vx+vy*vy+vz*vz),hh=y;
+    x=fa[o+3];y=fa[o+4];z=fa[o+5];
+    var nx=m[0]*x+m[4]*y+m[8]*z,ny=m[1]*x+m[5]*y+m[9]*z,nz=m[2]*x+m[6]*y+m[10]*z;
+    var nl=1/Math.sqrt(nx*nx+ny*ny+nz*nz);if(nx*vx+ny*vy+nz*vz<0)nl=-nl;nx*=nl;ny*=nl;nz*=nl;
+    var dif=nx*LX+ny*LY+nz*LZ;if(dif<0)dif=0;var am=.72+.28*ny;
+    var hx=LX+vx*vl,hy=LY+vy*vl,hz=LZ+vz*vl,sp=nx*hx+ny*hy+nz*hz;
+    if(sp>0){sp=sp*sp/(hx*hx+hy*hy+hz*hz);sp*=sp;sp*=sp;sp*=sp;sp*=.16;}else sp=0;
+    var wv=.94+.12*(((t*2654435761)>>>24)/255),cr=fa[o+6]*tr*wv,cg=fa[o+7]*tg*wv,cb=fa[o+8]*tb*wv;
+    if(mode===2&&hh<1){var kd=(1-hh)*.45;cr+=(.4-cr)*kd;cg+=(.35-cg)*kd;cb+=(.27-cb)*kd;am*=.7+.3*hh;}
+    drawPoly(TC,3,pack(cr*(.36*am+dif*.95)+sp,cg*(.4*am+dif*.89)+sp,cb*(.47*am+dif*.76)+sp*.9),false);
+  }
+}
+function drawSh(fa,m,VP){
+  var P=mul(VP,m),nt=fa.length/27,t,k;
+  for(t=0;t<nt;t++){var o=t*27,beh=0,l=0,r=0,u=0,dn=0;
+    for(k=0;k<3;k++){var q=o+k*9,x=fa[q],y=fa[q+1],z=fa[q+2];
+      var cx=P[0]*x+P[4]*y+P[8]*z+P[12],cy=P[1]*x+P[5]*y+P[9]*z+P[13],cw=P[3]*x+P[7]*y+P[11]*z+P[15];
+      TC[k*4]=cx;TC[k*4+1]=cy;TC[k*4+2]=P[2]*x+P[6]*y+P[10]*z+P[14];TC[k*4+3]=cw;
+      if(cw<NEAR)beh++;if(cx>cw)r++;if(cx<-cw)l++;if(cy>cw)u++;if(cy<-cw)dn++;}
+    if(beh===3||l===3||r===3||u===3||dn===3)continue;
+    drawPoly(TC,3,0,true);
+  }
+}
+// flattens geometry along the sun direction onto the plane n.p = d
+function shadowMat(nx,ny,nz,d){var nl=nx*LX+ny*LY+nz*LZ,m=new Float32Array(16),L=[LX,LY,LZ],n=[nx,ny,nz],i,j;
+  for(j=0;j<3;j++)for(i=0;i<3;i++)m[j*4+i]=(i===j?1:0)-L[i]*n[j]/nl;
+  for(i=0;i<3;i++)m[12+i]=L[i]*d/nl;m[15]=1;return m;}
+function inView(VP,x,y,z,r){var cw=VP[3]*x+VP[7]*y+VP[11]*z+VP[15];if(cw<-r)return false;
+  var cx=VP[0]*x+VP[4]*y+VP[8]*z+VP[12];return!(cx-r*2.6>cw||cx+r*2.6<-cw);}
+var TV9=new Float32Array(42*42*9),QC9=new Float32Array(36);
+function terrRing(VP,step,ci,cj,n,yoff,sk,ub,vb){
+  var a,b,k=0,N1=n+1;
+  for(b=0;b<N1;b++)for(a=0;a<N1;a++){var gi=ci+a*step,gj=cj+b*step;
+    if(gi<0||gj<0||gi>=NG||gj>=NG){TV9[k+3]=NaN;k+=9;continue;}
+    var gk=gj*NG+gi,x=gi*TS-HALF,z=gj*TS-HALF,y=hmap[gk]+yoff;
+    TV9[k]=VP[0]*x+VP[4]*y+VP[8]*z+VP[12];TV9[k+1]=VP[1]*x+VP[5]*y+VP[9]*z+VP[13];
+    TV9[k+2]=VP[2]*x+VP[6]*y+VP[10]*z+VP[14];TV9[k+3]=VP[3]*x+VP[7]*y+VP[11]*z+VP[15];
+    TV9[k+4]=vcol[gk*3];TV9[k+5]=vcol[gk*3+1];TV9[k+6]=vcol[gk*3+2];TV9[k+7]=x-ub;TV9[k+8]=z-vb;k+=9;}
+  for(b=0;b<n;b++)for(a=0;a<n;a++){
+    if(sk&&a>=sk[0]&&a<sk[1]&&b>=sk[2]&&b<sk[3])continue;
+    var i0=(b*N1+a)*9,i1=i0+9,i3=i0+N1*9,i2=i3+9,w0=TV9[i0+3],w1=TV9[i1+3],w2=TV9[i2+3],w3=TV9[i3+3];
+    if(!(w0===w0&&w1===w1&&w2===w2&&w3===w3))continue;
+    if(w0<NEAR&&w1<NEAR&&w2<NEAR&&w3<NEAR)continue;
+    if(TV9[i0]>w0&&TV9[i1]>w1&&TV9[i2]>w2&&TV9[i3]>w3)continue;
+    if(TV9[i0]<-w0&&TV9[i1]<-w1&&TV9[i2]<-w2&&TV9[i3]<-w3)continue;
+    if(TV9[i0+1]>w0&&TV9[i1+1]>w1&&TV9[i2+1]>w2&&TV9[i3+1]>w3)continue;
+    if(TV9[i0+1]<-w0&&TV9[i1+1]<-w1&&TV9[i2+1]<-w2&&TV9[i3+1]<-w3)continue;
+    for(k=0;k<9;k++){QC9[k]=TV9[i0+k];QC9[9+k]=TV9[i1+k];QC9[18+k]=TV9[i2+k];QC9[27+k]=TV9[i3+k];}
+    drawPolyT(QC9,4);
+  }
+}
+function drawTank(t,VP,eye,sh){
+  if(!inView(VP,t.x,t.y+1.5,t.z,10))return;
+  var g=t.geo;
+  if(sh){var m=t.Mh,S=shadowMat(m[4],m[5],m[6],m[4]*t.x+m[5]*t.y+m[6]*t.z+.1);
+    drawSh(g[0].fa,mul(S,t.Mh),VP);drawSh(g[1].fa,mul(S,t.Mt),VP);drawSh(g[2].fa,mul(S,t.Mg),VP);return;}
+  var w=t.wreck||(t===Gm.p&&Gm.dead),a=w?.3:1,b=w?.27:1,c=w?.25:1;
+  drawObj(g[0].fa,t.Mh,VP,eye,a,b,c,2);drawObj(g[1].fa,t.Mt,VP,eye,a,b,c,0);drawObj(g[2].fa,t.Mg,VP,eye,a,b,c,0);
+  if(g[3])drawObj(g[3].fa,mul(t.Mt,trans(-2.0,1.13,0)),VP,eye,a,b,c,0);
+}
+function sizeBuf(){
+  var s=Math.min(1,Math.sqrt(budget/(cv.width*cv.height))),nw=Math.max(8,Math.round(cv.width*s)),nh=Math.max(8,Math.round(cv.height*s));
+  if(nw!==zw||nh!==zh){zw=nw;zh=nh;off.width=zw;off.height=zh;img=octx.createImageData(zw,zh);
+    pxb=new Uint32Array(img.data.buffer);zb=new Float32Array(zw*zh);stamp=null;}
+  if(!stamp||stamp.length!==zw*zh)stamp=new Uint8Array(zw*zh);
+}
+var clouds=[];(function(){var s=7;function r(){s=(s*16807)%2147483647;return s/2147483647;}
+  for(var i=0;i<16;i++)clouds.push({a:r()*6.283,e:.07+r()*.33,w:.5+r()*.7,h:.1+r()*.1});})();
+// sky, sun, clouds and far hills are drawn straight on the canvas at full resolution
+function drawSky(F,hy){
+  var yaw=Gm.aimYaw,i,x,y;
+  function azX(a){var da=wrap(a-yaw);return Math.abs(da)>1.3?null:W/2+Math.tan(da)*F;}
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var g=ctx.createLinearGradient(0,hy-F*1.1,0,hy);g.addColorStop(0,'#3f6ea8');g.addColorStop(.55,'#86abd0');g.addColorStop(.9,'#c3d2d8');g.addColorStop(1,'#d2d6d0');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,Math.max(0,Math.min(H,hy+1)));
+  ctx.fillStyle='#c1c9ce';if(hy<H)ctx.fillRect(0,Math.max(0,hy),W,H-Math.max(0,hy));
+  x=azX(Math.atan2(LZ,LX));
+  if(x!==null){y=hy-Math.tan(Math.asin(LY))*F;ctx.globalCompositeOperation='lighter';
+    ctx.drawImage(SPR.sun,x-F*.45,y-F*.45,F*.9,F*.9);ctx.drawImage(SPR.sun,x-F*.1,y-F*.1,F*.2,F*.2);ctx.globalCompositeOperation='source-over';}
+  ctx.globalAlpha=.8;
+  for(i=0;i<clouds.length;i++){var c=clouds[i];x=azX(c.a+Gm.time*.004);if(x===null)continue;y=hy-Math.tan(c.e)*F;var w=c.w*F,h=c.h*F*(1+c.e);
+    ctx.drawImage(SPR.cloud,x-w/2,y-h/2,w,h);ctx.drawImage(SPR.cloud,x-w*.22,y-h*.8,w*.6,h*.95);ctx.drawImage(SPR.cloud,x-w*.6,y-h*.3,w*.5,h*.6);}
+  ctx.globalAlpha=1;
+  [['#a7b6c4',.012,.05,3,7,17,1],['#8fa398',.004,.028,5,11,23,2.3]].forEach(function(L){
+    ctx.beginPath();ctx.moveTo(0,hy+2);
+    for(var px=0;px<=W+8;px+=8){var az=yaw+Math.atan((px-W/2)/F),e=L[1]+L[2]*(.5+.5*Math.sin(az*L[3]+L[6]))*(.6+.4*Math.sin(az*L[4]+L[6]*2))+L[2]*.15*Math.sin(az*L[5]);
+      ctx.lineTo(px,hy-Math.tan(e)*F);}
+    ctx.lineTo(W+8,hy+2);ctx.closePath();ctx.fillStyle=L[0];ctx.fill();});
+}
+// smoke, fire, dust and tracers as soft sprites, hidden when the terrain or a tank is in front
+function drawFx(VP,F){
+  var L=[],i;ctx.setTransform(dpr,0,0,dpr,0,0);
+  Gm.fx.forEach(function(f){var cw=VP[3]*f.x+VP[7]*f.y+VP[11]*f.z+VP[15];if(cw<1)return;
+    var sx=(VP[0]*f.x+VP[4]*f.y+VP[8]*f.z+VP[12])/cw*.5+.5,sy=.5-(VP[1]*f.x+VP[5]*f.y+VP[9]*f.z+VP[13])/cw*.5;
+    if(sx<-.3||sx>1.3||sy<-.3||sy>1.3)return;
+    var z=(VP[2]*f.x+VP[6]*f.y+VP[10]*f.z+VP[14])/cw,X=Math.floor(sx*zw),Y=Math.floor(sy*zh),e=GB-z;
+    if(X>=0&&X<zw&&Y>=0&&Y<zh&&z>zb[Y*zw+X]+2.5*e*e/GA)return;
+    L.push([cw,sx*W,sy*H,f]);});
+  L.sort(function(a,b){return b[0]-a[0];});
+  for(i=0;i<L.length;i++){var f=L[i][3],u=f.t/f.life,R,s,al,add=false;
+    if(f.k===0){s=SPR.fire;R=f.s*(.5+1.1*u);al=1-u*u;add=true;}
+    else if(f.k===2){s=SPR.fire;R=f.s*(.7+u);al=1-u;add=true;}
+    else if(f.k===3){s=SPR.dust;R=f.s*(.8+2.2*u);al=(1-u)*.7;}
+    else if(f.k===4){s=SPR.dark;R=f.s*(.8+2.2*u);al=(1-u)*.9;}
+    else{s=SPR.smoke;R=f.s*(.8+1.9*u);al=(1-u)*.85;}
+    var Rp=R*F/L[i][0];if(Rp<.6)continue;
+    ctx.globalAlpha=al;ctx.globalCompositeOperation=add?'lighter':'source-over';ctx.drawImage(s,L[i][1]-Rp,L[i][2]-Rp,Rp*2,Rp*2);}
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+  Gm.sh.forEach(function(s){var a=xf(VP,[s.x,s.y,s.z],1),b=xf(VP,[s.x-s.vx*.014,s.y-s.vy*.014,s.z-s.vz*.014],1);if(a[3]<.5||b[3]<.5)return;
+    ctx.beginPath();ctx.moveTo((a[0]/a[3]*.5+.5)*W,(.5-a[1]/a[3]*.5)*H);ctx.lineTo((b[0]/b[3]*.5+.5)*W,(.5-b[1]/b[3]*.5)*H);
+    ctx.strokeStyle='rgba(255,205,130,.95)';ctx.lineWidth=clamp(40/a[3],1.2,4);ctx.stroke();});
+  ctx.globalCompositeOperation='source-over';
+}
+function renderGame(){
+  sizeBuf();
+  var p=Gm.p,sight=Gm.sight&&!Gm.dead,fov=(sight?12:52)*D,as=W/H,eye=Gm.eye,dir=Gm.dir,nr=.4,fr=950,i,t,dx,dz;
+  var VP=mul(persp(fov,as,nr,fr),look(eye,[eye[0]+dir[0],eye[1]+dir[1],eye[2]+dir[2]]));Gm.VP=VP;
+  GA=2*fr*nr/(fr-nr);GB=(fr+nr)/(fr-nr);
+  pxb.fill(0);zb.fill(9);stamp.fill(0);
+  var fci=Math.floor((eye[0]+HALF)/TS)-20,fcj=Math.floor((eye[2]+HALF)/TS)-20,ub=Math.floor(eye[0]/8)*8,vb=Math.floor(eye[2]/8)*8;
+  terrRing(VP,1,fci,fcj,40,0,null,ub,vb);
+  var ci=((fci+20)>>2)*4-80,cj=((fcj+20)>>2)*4-80;
+  terrRing(VP,4,ci,cj,40,-.4,[Math.ceil((fci+4-ci)/4),Math.floor((fci+36-ci)/4),Math.ceil((fcj+4-cj)/4),Math.floor((fcj+36-cj)/4)],ub,vb);
+  // shadows first, so they only darken the ground
+  for(i=0;i<trees.length;i++){t=trees[i];dx=t.x-eye[0];dz=t.z-eye[2];
+    if(dx*dx+dz*dz<14400&&inView(VP,t.x,t.y,t.z,12))drawSh((t.k?treeG2:treeG).fa,mul(shadowMat(0,1,0,t.y+.3),mul(trans(t.x,t.y,t.z),scl(t.s,t.s,t.s))),VP);}
+  drawTank(p,VP,eye,true);Gm.en.forEach(function(e){dx=e.x-eye[0];dz=e.z-eye[2];if(dx*dx+dz*dz<62500)drawTank(e,VP,eye,true);});
+  for(i=0;i<trees.length;i++){t=trees[i];dx=t.x-eye[0];dz=t.z-eye[2];
+    if(dx*dx+dz*dz<78400&&inView(VP,t.x,t.y+3,t.z,5))drawObj((t.k?treeG2:treeG).fa,mul(trans(t.x,t.y,t.z),scl(t.s,t.s,t.s)),VP,eye,t.r,t.g,t.b,0);}
+  drawTank(p,VP,eye,false);Gm.en.forEach(function(e){drawTank(e,VP,eye,false);});
+  // distance haze
+  var n=zw*zh;
+  for(i=0;i<n;i++){var z=zb[i];if(z>8)continue;var d=GA/(GB-z);if(d<110)continue;var f=(d-110)/720;if(f>.82)f=.82;
+    var c=pxb[i],r=c&255,g=(c>>8)&255,b=(c>>16)&255;
+    pxb[i]=(255<<24|(b+(206-b)*f)<<16|(g+(201-g)*f)<<8|(r+(193-r)*f))>>>0;}
+  var F=(H/2)/Math.tan(fov/2),hy=H/2-Math.tan(-Math.asin(clamp(dir[1],-1,1)))*F;
+  drawSky(F,hy);
+  ctx.setTransform(1,0,0,1,0,0);
+  octx.putImageData(img,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,cv.width,cv.height);
+  drawFx(VP,F);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var mn=Math.min(W,H),vg=sight?ctx.createRadialGradient(W/2,H/2,mn*.44,W/2,H/2,mn*.5):ctx.createRadialGradient(W/2,H/2,mn*.45,W/2,H/2,Math.hypot(W,H)*.6);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,sight?'rgba(0,0,0,.93)':'rgba(0,0,0,.34)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  hud(VP);
+}
+function proj(VP,q){var c=xf(VP,q,1);return c[3]>.1?[(c[0]/c[3]*.5+.5)*W,(.5-c[1]/c[3]*.5)*H]:null;}
+function hud(VP){
+  var p=Gm.p,cx=W/2,cy=H/2,i,q,F='ui-monospace,Menlo,Consolas,monospace';
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.textBaseline='alphabetic';ctx.lineCap='butt';
+  if(Gm.flash>0){ctx.fillStyle='rgba(200,20,10,'+(Gm.flash*.6).toFixed(2)+')';ctx.fillRect(0,0,W,H);}
+  function ln(a,b,c,d){ctx.moveTo(a,b);ctx.lineTo(c,d);}
+  if(!Gm.dead){
+    ctx.beginPath();ln(cx-22,cy,cx-6,cy);ln(cx+6,cy,cx+22,cy);ln(cx,cy+6,cx,cy+22);
+    if(Gm.sight){for(i=1;i<=4;i++){ln(cx-i*40,cy-5,cx-i*40,cy+5);ln(cx+i*40,cy-5,cx+i*40,cy+5);ln(cx-8,cy+i*30,cx+8,cy+i*30);}ln(cx-170,cy,cx-30,cy);ln(cx+30,cy,cx+170,cy);}
+    ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=3;ctx.stroke();ctx.strokeStyle='#f2fff2';ctx.lineWidth=1.3;ctx.stroke();
+    var mz=xf(p.Mg,[p.spec.mz,0,0],1),gd=xf(p.Mg,[1,0,0],0),dd=Math.max(20,Gm.aimD-4);
+    q=proj(VP,[mz[0]+gd[0]*dd,mz[1]+gd[1]*dd,mz[2]+gd[2]*dd]);
+    if(q){var on=Math.hypot(q[0]-cx,q[1]-cy)<9;ctx.beginPath();ctx.arc(q[0],q[1],8,0,6.2832);ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=3;ctx.stroke();
+      ctx.strokeStyle=on&&p.rl<=0&&(!p.spec.mag||p.ammo>0)?'#7dff8a':'#ffc24a';ctx.lineWidth=1.6;ctx.stroke();}
+    ctx.font='600 11px '+F;ctx.fillStyle='#f2fff2';ctx.textAlign='left';
+    ctx.fillText(Gm.aimD<890?Math.round(Gm.aimD)+' m':'--- m',cx+28,cy+16);
+  }
+  ctx.font='600 10px '+F;ctx.textAlign='center';
+  Gm.en.forEach(function(e){if(e.wreck||!e.los)return;q=proj(VP,[e.x,e.y+4.2,e.z]);if(!q||q[0]<0||q[0]>W)return;
+    var d=Math.round(Math.hypot(e.x-p.x,e.z-p.z));
+    ctx.beginPath();ctx.moveTo(q[0]-6,q[1]-8);ctx.lineTo(q[0]+6,q[1]-8);ctx.lineTo(q[0],q[1]);ctx.closePath();ctx.fillStyle='#ff5a4a';ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(q[0]-20,q[1]-14,40,3);ctx.fillStyle='#ff5a4a';ctx.fillRect(q[0]-20,q[1]-14,40*clamp(e.hp/100,0,1),3);
+    ctx.fillStyle='#fff';ctx.fillText(e.spec.name+'  '+d+' m',q[0],q[1]-19);});
+  // status
+  ctx.textAlign='left';ctx.font='600 11px '+F;var by=H-16,bx=Gm.touch?150:16;
+  ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(bx-6,by-60,150,68);ctx.fillStyle='#ffd27a';ctx.fillText(p.spec.name,bx,by-46);
+  ctx.fillStyle='#fff';ctx.fillText('HULL '+Math.max(0,Math.round(p.hp))+'%',bx,by-30);
+  ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(bx+70,by-38,68,7);ctx.fillStyle=p.hp>50?'#7dff8a':p.hp>25?'#ffc24a':'#ff5a4a';ctx.fillRect(bx+70,by-38,68*clamp(p.hp/100,0,1),7);
+  ctx.fillStyle='#fff';ctx.fillText(Math.round(Math.abs(p.v)*3.6)+' km/h'+(p.v<-.5?' R':''),bx,by-15);ctx.fillText('KILLS '+Gm.kills,bx+82,by-15);
+  if(p.spec.mag)for(i=0;i<p.spec.mag;i++){ctx.fillStyle=i<p.ammo?'#ffd27a':'rgba(255,255,255,.22)';ctx.fillRect(bx+i*14,by-8,10,6);}
+  else{ctx.fillStyle=p.rl<=0?'#7dff8a':'#ffc24a';ctx.fillText(p.rl<=0?'LOADED':'LOADING '+p.rl.toFixed(1)+' s',bx,by-1);}
+  var rl=p.spec.mag&&p.ammo===0?1-p.drum/p.spec.magRl:1-clamp(p.rl/p.spec.rl,0,1);
+  if(rl<1&&!Gm.dead){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(cx-40,cy+34,80,5);ctx.fillStyle='#ffc24a';ctx.fillRect(cx-40,cy+34,80*rl,5);}
+  // radar
+  var rx=W-58,ry=58,rr=44,ay=Gm.aimYaw,ca=Math.cos(ay),sa=Math.sin(ay),ks=rr/450;
+  ctx.beginPath();ctx.arc(rx,ry,rr,0,6.2832);ctx.fillStyle='rgba(0,0,0,.45)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1;ctx.stroke();
+  ctx.beginPath();ln(rx,ry,rx-rr*.5,ry-rr*.87);ln(rx,ry,rx+rr*.5,ry-rr*.87);ctx.strokeStyle='rgba(255,255,255,.25)';ctx.stroke();
+  Gm.en.forEach(function(e){var dx=e.x-p.x,dz=e.z-p.z,f=dx*ca+dz*sa,r=-dx*sa+dz*ca,l=Math.hypot(f,r)*ks;if(l>rr-3){f*=(rr-3)/l;r*=(rr-3)/l;}
+    ctx.fillStyle=e.wreck?'#777':e.los?'#ff5a4a':'#b98';ctx.fillRect(rx+r*ks-2,ry-f*ks-2,4,4);});
+  var hf=Math.cos(p.yaw)*ca+Math.sin(p.yaw)*sa,hr=-Math.cos(p.yaw)*sa+Math.sin(p.yaw)*ca;
+  ctx.beginPath();ln(rx,ry,rx+hr*9,ry-hf*9);ctx.strokeStyle='#7dff8a';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#7dff8a';ctx.fillRect(rx-2,ry-2,4,4);
+  ctx.textAlign='center';
+  if(Gm.aimE&&!Gm.dead){ctx.font='700 12px '+F;ctx.fillStyle='#fff';ctx.fillText(Gm.aimE.spec.name+'  '+Math.max(0,Math.round(Gm.aimE.hp))+'%',cx,26);
+    ctx.font='500 10px '+F;var ar=Gm.aimE.spec.arm;ctx.fillText('PLATE mm  TURRET '+ar.TF+'  SIDE '+ar.HS+'  REAR '+ar.HR,cx,40);}
+  if(Gm.msgT>0){ctx.font='700 12px '+F;var tw=ctx.measureText(Gm.msg).width;ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(cx-tw/2-8,cy-78,tw+16,20);
+    ctx.fillStyle='#ffd27a';ctx.fillText(Gm.msg,cx,cy-64);}
+  if(Gm.dead){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,cy-40,W,80);ctx.fillStyle='#ff5a4a';ctx.font='700 22px '+F;ctx.fillText('KNOCKED OUT',cx,cy-4);
+    ctx.fillStyle='#fff';ctx.font='600 11px '+F;ctx.fillText('KILLS '+Gm.kills+'   ·   PRESS FIRE TO REDEPLOY',cx,cy+20);}
+  ctx.textAlign='left';
+}
+
+/* ================= UI ================= */
+function $(id){return document.getElementById(id);}
+function setBtn(b,on){b.setAttribute('aria-pressed',on?'true':'false');}
+var tabBtns=[];
+sheets.forEach(function(s,i){var b=document.createElement('button');b.textContent=s.name;
+  b.onclick=function(){setSheet(i);};$('tabs').appendChild(b);tabBtns.push(b);});
+var bTab=document.createElement('button');bTab.textContent='BATTLE';bTab.onclick=setBattle;$('tabs').appendChild(bTab);
+function setBattle(){
+  initBattle();if(!Gm.p)resetGame();battle=true;$('app').className='battle';
+  tabBtns.forEach(function(b){setBtn(b,false);});setBtn(bTab,true);
+  if(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches)showJoy();
+}
+ktSheet=sheets[0];ktAll=sheets.slice();
+ROSTER.forEach(function(r,i){var o=document.createElement('option');o.value=i;o.textContent=r.name+(r===KT?'':r.era?' (modern)':' (WWII)');$('selView').appendChild(o);});
+$('selView').onchange=function(){var r=ROSTER[+this.value||0],k;
+  if(r===KT)for(k=0;k<4;k++)sheets[k]=ktAll[k];else{sheets[0]=tankSheet(r);sheets[1]=gunSheet(r);sheets[2]=null;sheets[3]=suspSheet(r);}
+  tabBtns[2].style.display=sheets[2]?'':'none';setSheet(sheets[cur]?cur:0);};
+ROSTER.forEach(function(r,i){var o=document.createElement('option');o.value=i;o.textContent=r.name+(r===KT?'':r.era?' (modern)':' (WWII)');$('selTank').appendChild(o);});
+['MODERN MBTs','WWII TANKS','MIXED'].forEach(function(n,i){var o=document.createElement('option');o.value=i;o.textContent=n;$('selFoe').appendChild(o);});
+$('selTank').onchange=function(){Gm.pick=+this.value||0;Gm.foe=ROSTER[Gm.pick].era?0:1;$('selFoe').value=Gm.foe;initBattle();resetGame();this.blur&&this.blur();};
+$('selFoe').onchange=function(){Gm.foe=+this.value||0;initBattle();resetGame();this.blur&&this.blur();};
+function showJoy(){Gm.touch=true;$('joy').style.display='block';}
+function locked(){return document.pointerLockElement===cv;}
+function toggleSight(){var p=Gm.p;
+  if(p&&p.Mt&&!Gm.sight){var e=xf(p.Mt,p.spec.sight,1),dx=Gm.eye[0]+Gm.dir[0]*Gm.aimD-e[0],dy=Gm.eye[1]+Gm.dir[1]*Gm.aimD-e[1],dz=Gm.eye[2]+Gm.dir[2]*Gm.aimD-e[2];
+    Gm.aimYaw=Math.atan2(dz,dx);Gm.aimPitch=clamp(-Math.atan2(dy,Math.hypot(dx,dz)),-.35,.6);}
+  else if(Gm.sight)Gm.aimPitch=Math.max(Gm.aimPitch,.08);
+  Gm.sight=!Gm.sight;setBtn($('gSight'),Gm.sight);}
+function hold(el,fn0,fn1){el.addEventListener('pointerdown',function(e){e.preventDefault();audioInit();fn0(e);});
+  ['pointerup','pointercancel','pointerleave'].forEach(function(n){el.addEventListener(n,function(e){fn1(e);});});}
+hold($('gFire'),function(){Gm.fireB=true;},function(){Gm.fireB=false;});
+$('gSight').addEventListener('pointerdown',function(e){e.preventDefault();toggleSight();});
+(function(){var el=$('joy'),id=null;
+  function mv(e){var r=el.getBoundingClientRect(),x=clamp((e.clientX-r.left-r.width/2)/(r.width/2),-1,1),y=clamp((e.clientY-r.top-r.height/2)/(r.height/2),-1,1);
+    joy.x=Math.abs(x)<.15?0:x;joy.y=Math.abs(y)<.15?0:-y;$('knob').style.transform='translate('+(x*37)+'px,'+(y*37)+'px)';}
+  el.addEventListener('pointerdown',function(e){e.preventDefault();id=e.pointerId;try{el.setPointerCapture(id);}catch(x){}audioInit();mv(e);});
+  el.addEventListener('pointermove',function(e){if(e.pointerId===id)mv(e);});
+  function end(e){if(e.pointerId!==id)return;id=null;joy.x=joy.y=0;$('knob').style.transform='';}
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);})();
+window.addEventListener('keydown',function(e){if(!battle)return;var k=(e.key||'').toLowerCase();K[k]=true;audioInit();
+  if(k==='e'&&!e.repeat)toggleSight();if(k==='m'&&!e.repeat)sndOn=!sndOn;
+  if(k===' '||k.indexOf('arrow')===0)e.preventDefault();});
+window.addEventListener('keyup',function(e){K[(e.key||'').toLowerCase()]=false;});
+window.addEventListener('blur',function(){K={};Gm.fire=Gm.fireB=false;});
+function gDown(e){audioInit();if(e.pointerType==='touch'&&!Gm.touch)showJoy();
+  if(locked()){Gm.fire=true;return;}
+  pts[e.pointerId]=[e.clientX,e.clientY];try{cv.setPointerCapture(e.pointerId);}catch(x){}
+  if(e.pointerType==='mouse'){try{var pr=cv.requestPointerLock&&cv.requestPointerLock();if(pr&&pr.catch)pr.catch(function(){});}catch(x){}}}
+function gMove(e){var k=Gm.sight?.25:1,dx,dy;
+  if(locked()){dx=(e.movementX||0)*.0024;dy=(e.movementY||0)*.0018;}
+  else{var p=pts[e.pointerId];if(!p)return;dx=(e.clientX-p[0])*.005;dy=(e.clientY-p[1])*.0035;pts[e.pointerId]=[e.clientX,e.clientY];}
+  Gm.aimYaw+=dx*k;Gm.aimPitch=clamp(Gm.aimPitch+dy*k,-.35,.6);}
+function setSheet(i){
+  if(battle){battle=false;$('app').className='';setBtn(bTab,false);Gm.fire=Gm.fireB=false;K={};
+    try{if(document.exitPointerLock&&locked())document.exitPointerLock();}catch(x){}if(eng){try{eng.g.gain.value=0;}catch(x){}}}
+  cur=i;var S=sheets[i];zoom=1;an.t=-1;
+  tabBtns.forEach(function(b,k){setBtn(b,k===i);});
+  $('sub').innerHTML=S.sub;$('tt1').innerHTML=S.title||'Fictional heavy hybrid super-tank &lsquo;KT-2251S&rsquo;';
+  $('tt2').innerHTML=S.title2||'(Designation: Project Chaos)';$('tbDes').textContent=S.des||'KT-2251S';$('vsel').style.display='flex';$('dwg').textContent=S.dwg;var live=sheets.filter(function(q){return q;});$('shn').textContent=(live.indexOf(S)+1)+' OF '+live.length;
+  var box=$('sliders');box.innerHTML='';
+  S.sl.forEach(function(q,k){
+    var row=document.createElement('div');row.className='row';
+    var lb=document.createElement('label');lb.textContent=q[0];
+    var inp=document.createElement('input');inp.type='range';inp.min=q[1];inp.max=q[2];inp.step=1;inp.value=S.p[k];
+    inp.setAttribute('aria-label',q[0]);
+    var out=document.createElement('output');out.textContent=S.p[k]+q[4];
+    inp.oninput=function(){S.p[k]=+inp.value;out.textContent=S.p[k]+q[4];need=true;};
+    row.appendChild(lb);row.appendChild(inp);row.appendChild(out);box.appendChild(row);});
+  $('actrow').style.display=S.action?'flex':'none';if(S.action)$('act').textContent=S.action;
+  var h='<tr><th colspan="2">SPECIFICATIONS</th></tr>';
+  S.specs.forEach(function(r){h+='<tr><td>'+r[0]+':</td><td>'+r[1]+'</td></tr>';});
+  $('specs').innerHTML=h;need=true;
+}
+$('act').onclick=function(){if(an.t<0){an.t=0;need=true;}};
+var specsOn=W>=820;
+function applySpecs(){$('specs').style.display=specsOn?'':'none';setBtn($('bSpec'),specsOn);}
+$('bSolid').onclick=function(){solid=!solid;setBtn(this,solid);need=true;};
+$('bXray').onclick=function(){xray=!xray;setBtn(this,xray);need=true;};
+$('bLab').onclick=function(){labelsOn=!labelsOn;setBtn(this,labelsOn);need=true;};
+$('bSpec').onclick=function(){specsOn=!specsOn;applySpecs();};
+$('bSpin').onclick=function(){spin=!spin;setBtn(this,spin);};
+applySpecs();setSheet(0);
+
+var pts={},pinch=0;
+function stopSpin(){if(spin){spin=false;setBtn($('bSpin'),false);}}
+cv.addEventListener('pointerdown',function(e){if(battle){gDown(e);return;}try{cv.setPointerCapture(e.pointerId);}catch(x){}
+  pts[e.pointerId]=[e.clientX,e.clientY];pinch=0;stopSpin();$('hint').style.opacity=0;});
+cv.addEventListener('pointermove',function(e){if(battle){gMove(e);return;}var p=pts[e.pointerId];if(!p)return;
+  var ids=Object.keys(pts);
+  if(ids.length===1){yaw+=(e.clientX-p[0])*.008;pitch+=(e.clientY-p[1])*.006;pitch=Math.max(-.3,Math.min(1.5,pitch));}
+  pts[e.pointerId]=[e.clientX,e.clientY];
+  if(ids.length===2){var a=pts[ids[0]],b=pts[ids[1]],d=Math.hypot(a[0]-b[0],a[1]-b[1]);
+    if(pinch)zoom=Math.max(.58,Math.min(1.8,zoom*pinch/d));pinch=d;}
+  need=true;});
+function up(e){delete pts[e.pointerId];pinch=0;Gm.fire=false;}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',function(e){e.preventDefault();if(battle)return;zoom=Math.max(.58,Math.min(1.8,zoom*Math.exp(e.deltaY*.001)));need=true;},{passive:false});
+
+var last=0,ema=20,now=(window.performance&&performance.now)?function(){return performance.now();}:function(){return Date.now();};
+function tick(t){
+  var dt=Math.min(.05,(t-last)/1000);last=t;
+  if(spin){yaw+=dt*.2;need=true;}
+  if(an.t>=0){an.t+=dt/1.6;if(an.t>=1){an.t=-1;an.shots++;}need=true;}
+  if(battle){updateGame(dt);var g0=now();renderGame();ema=ema*.8+(now()-g0)*.2;need=true;
+    if(ema>34&&budget>60000){budget*=.8;ema=22;}else if(ema<12&&budget<300000){budget*=1.15;ema=18;}}
+  else if(need){need=false;var t0=now();render();ema=ema*.8+(now()-t0)*.2;
+    if(ema>38&&budget>90000){budget*=.8;ema=24;}else if(ema<13&&budget<380000){budget*=1.15;ema=18;}}
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
